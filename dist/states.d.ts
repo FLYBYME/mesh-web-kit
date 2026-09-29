@@ -17,6 +17,20 @@ export interface Loadable<T> {
     data(): T | undefined;
     error(): Error | CallError<string> | null;
 }
+/** A list, as a `cx.models` collection is: its rows, and why they could not be fetched. */
+export interface LoadableList<T> {
+    data(): readonly T[] | undefined;
+    error(): Error | CallError<string> | null;
+}
+/**
+ * The one row of a one-row list, for a detail page.
+ *
+ * A detail page reads its row as `find({ query: { id } })` rather than `get`, so the row follows
+ * the server's events like any list does, and a delete takes it away. This narrows that list to its
+ * row, for `loaded`: nothing until the first fetch, then the row — or, when there is none (a wrong
+ * id, or deleted since), a failure saying `missing`.
+ */
+export declare function one<T>(rows: LoadableList<T>, missing: string): Loadable<T>;
 /**
  * `ready` gets the data as an accessor and is built **once**: a refetch or a live event updates what
  * is on screen through the accessor instead of tearing it down, so a table keeps its sort and a panel

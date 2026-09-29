@@ -5,6 +5,21 @@
  * Functions, not components: none of this remembers anything.
  */
 import { describe, each, element, text, when } from '@flybyme/mesh-web';
+/**
+ * The one row of a one-row list, for a detail page.
+ *
+ * A detail page reads its row as `find({ query: { id } })` rather than `get`, so the row follows
+ * the server's events like any list does, and a delete takes it away. This narrows that list to its
+ * row, for `loaded`: nothing until the first fetch, then the row — or, when there is none (a wrong
+ * id, or deleted since), a failure saying `missing`.
+ */
+export function one(rows, missing) {
+    const gone = new Error(missing);
+    return {
+        data: () => rows.data()?.[0],
+        error: () => rows.error() ?? (rows.data()?.length === 0 ? gone : null),
+    };
+}
 function message(error) {
     return error instanceof Error ? error.message : describe(error);
 }

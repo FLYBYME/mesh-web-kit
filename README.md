@@ -24,6 +24,7 @@ state in the URL, forms built from commands, and confirm dialogs — is `example
 | `panel(title, body, actions)` | function | a titled card (its accessible name is the title) |
 | `stat(label, value)`, `stats([...])` | function | a number with its label |
 | `loaded(source, ready, { label })` | function | loading / failed / here, for a `resource(...)` or a `cx.models` collection |
+| `one(rows, missing)` | function | the row of a one-row collection (`find({ query: { id } })`), for a detail page's `loaded` |
 | `emptyState(title, detail, action)` | function | "nothing here", which can name the current search |
 | `list(items, key, row)`, `listRow({...})`, `badge(label, tone)` | function | a list of things, each row the same shape |
 | `filterBar<F>()` | factory → component | a search box and one typed filter, bound to the page's signals |

@@ -7,7 +7,7 @@ import { userEvent } from '@vitest/browser/context';
 import { command, createCollectionQuery, element, MeshCallError, resource, signal, text } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
-    badge, commandForm, ConfirmButton, dataTable, emptyState, filterBar, list, listRow, loaded,
+    badge, commandForm, ConfirmButton, dataTable, emptyState, filterBar, list, listRow, loaded, one,
     pageHeader, Pager, panel, stat,
 } from '../src/index.js';
 import { byText, frame, show, unmount } from './harness.js';
@@ -59,6 +59,20 @@ describe('loaded', () => {
         await until(() => expect(root.querySelector('[data-value]')?.textContent).toBe('a.example'));
         expect(root.querySelector('[role="alert"]')?.textContent).toBe('You do not have access to that.');
         expect(builds).toBe(1);
+    });
+
+    it('shows one row of a list, and says so when there is none', async () => {
+        const root = show(() => [
+            element('Stack', { props: { 'data-found': '' }, children: [
+                loaded(one(createCollectionQuery(() => Promise.resolve([{ name: 'a.example' }])), 'No such zone.'),
+                    (zone) => text(() => zone().name)),
+            ] }),
+            element('Stack', { props: { 'data-missing': '' }, children: [
+                loaded(one(createCollectionQuery(() => Promise.resolve([] as { name: string }[])), 'No such zone.'), () => []),
+            ] }),
+        ]);
+        await until(() => expect(root.querySelector('[data-found]')?.textContent).toBe('a.example'));
+        await until(() => expect(root.querySelector('[data-missing] [role="alert"]')?.textContent).toBe('No such zone.'));
     });
 });
 
