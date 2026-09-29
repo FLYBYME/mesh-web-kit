@@ -1,0 +1,63 @@
+/*
+ * The console's own look: its palette, its two layouts, and the few page-level classes the pages
+ * use. Everything a kit piece draws (tables, forms, dialogs, states, badges) is the kit's
+ * (`@flybyme/mesh-web-kit/kit.css`), and this file restyles it only by setting the kit's tokens —
+ * the way any site should.
+ */
+
+:root {
+    color-scheme: light;
+    --page: #ffffff;
+    --ink: #1c2430;
+    --muted: #5d6b7d;
+    --edge: #d8dee6;
+    --panel: #f5f7fa;
+    --accent: #1f6feb;
+
+    /* The kit, in this console's colours. */
+    --kit-page: var(--page);
+    --kit-ink: var(--ink);
+    --kit-muted: var(--muted);
+    --kit-edge: var(--edge);
+    --kit-panel: var(--panel);
+    --kit-accent: var(--accent);
+    --kit-accent-ink: #ffffff;
+
+    font: 15px/1.5 system-ui, sans-serif;
+    background: var(--page);
+    color: var(--ink);
+}
+
+body { margin: 0; }
+a { color: var(--accent); }
+h2 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+button { font: inherit; }
+
+/* ---------------------------------------------------------------- layouts */
+
+.public { max-width: 60rem; margin: 0 auto; padding: 0 1rem; }
+.public-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--edge); }
+.public-main { padding: 2rem 0; }
+.brand { font-weight: 700; text-decoration: none; color: var(--ink); }
+
+.console { grid-template-columns: 14rem minmax(0, 1fr); min-height: 100vh; }
+.console[data-collapsed="true"] { grid-template-columns: 3rem minmax(0, 1fr); }
+.console[data-collapsed="true"] .console-nav > :not(.console-collapse) { display: none; }
+.console-nav { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; background: var(--panel); border-right: 1px solid var(--edge); }
+.console-spacer { flex: 1; }
+.console-user { color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+.console-main { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+/* ---------------------------------------------------------------- page-level */
+
+.ui-primary { background: var(--accent); border: 1px solid var(--accent); color: #fff; padding: 0.4rem 0.9rem; border-radius: 6px; text-decoration: none; display: inline-block; cursor: pointer; }
+.ui-panel { padding: 1rem; border: 1px solid var(--edge); border-radius: 8px; background: var(--panel); display: flex; flex-direction: column; gap: 0.5rem; }
+.ui-search { max-width: 20rem; font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--edge); border-radius: 6px; }
+.ui-back { text-decoration: none; }
+
+[data-status="active"] { color: #1a7f37; }
+[data-status="pending"] { color: #9a6700; }
+
+.home { gap: 1rem; display: flex; flex-direction: column; align-items: flex-start; }
+.sign-in { max-width: 22rem; gap: 0.5rem; display: flex; flex-direction: column; }
+.hint { color: var(--muted); font-size: 0.9rem; }

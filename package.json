@@ -1,0 +1,43 @@
+{
+    "name": "@flybyme/mesh-web-kit",
+    "version": "0.1.0",
+    "description": "The pieces every mesh-web site needs — page header, filter bar, data table, confirm button, command form, loading and empty states — built once on the app model.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./kit.css": "./dist/kit.css"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json && cp src/kit.css dist/kit.css",
+        "prepare": "npm run build",
+        "typecheck": "tsc -p tsconfig.check.json --noEmit",
+        "test:browser": "vitest run --config vitest.browser.config.ts",
+        "//test": "Typecheck first: vitest transpiles without checking types, so a suite can be green while the compiler is not.",
+        "test": "npm run typecheck && npm run test:browser",
+        "//example:console": "The reference console on http://localhost:5191, built on this kit's source.",
+        "example:console": "vite --config examples/console/vite.config.ts"
+    },
+    "license": "UNLICENSED",
+    "private": true,
+    "peerDependencies": {
+        "@flybyme/mesh-web": ">=0.21.0"
+    },
+    "devDependencies": {
+        "@flybyme/mesh-web": "github:FLYBYME/mesh-web#v0.21.0",
+        "@types/node": "^26.4.1",
+        "@vitest/browser": "^2.1.9",
+        "playwright": "^1.62.1",
+        "typescript": "^5.9.3",
+        "vitest": "^2.1.9",
+        "zod": "^3.25.76"
+    }
+}

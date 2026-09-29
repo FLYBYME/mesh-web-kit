@@ -1,0 +1,15 @@
+// src/, the tests and the reference console together, with node types for the tests.
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "rootDir": ".",
+        "types": ["node"],
+        "baseUrl": ".",
+        "paths": {
+            // The console imports the kit by name, the way a site does.
+            "@flybyme/mesh-web-kit": ["./src/index.ts"]
+        }
+    },
+    "include": ["src/**/*.ts", "test/**/*.ts", "examples/**/*.ts"]
+}
