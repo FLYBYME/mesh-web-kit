@@ -48,6 +48,9 @@ Every piece follows these. A piece that would break one does not belong in the k
 4. **Rules live on commands, not in forms.** A form built with `commandForm` has no validation of
    its own; the command's input schema decides, and each issue comes back beside its field. A rule
    written in a form is a second copy of the server's rule, and it will drift.
+   An **empty field is not sent**, so the schema's `.default(...)` applies. For a required field
+   that means zod says "Required" unless told otherwise, so give it the same words both ways:
+   `z.string({ required_error: m }).trim().min(1, m)`.
 5. **Destructive actions ask first.** Delete is a `ConfirmButton`, never a bare button with a
    `catch {}` behind it.
 6. **Typed end to end.** No `as any`, no `as never`.
