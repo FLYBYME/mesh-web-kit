@@ -4,6 +4,9 @@
  */
 
 import { App, mountSite, Router, View, type MountedApp, type Node } from '@flybyme/mesh-web';
+// Styled, as a site shows them: an audit of unstyled pieces cannot see a colour-contrast failure
+// (it missed one until this line existed).
+import '../src/kit.css';
 
 type Body = (host: Page) => Node;
 let body: Body = () => [];

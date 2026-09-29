@@ -54,7 +54,7 @@ describe('the kit, audited', () => {
             stats([stat('Things', () => 3), stat('Size', () => '1.5 MB')]),
             host.mount(Bar, { search: signal(''), filter: signal<Scope>('all'), label: 'things', options: [{ value: 'all', label: 'All' }, { value: 'mine', label: 'Mine' }] }),
             panel('Recent', list(() => [{ id: 'a', name: 'alpha' }], (i) => i.id, (i) => listRow({
-                title: text(() => i().name), badges: [badge('new', 'good')], meta: text('today'),
+                title: text(() => i().name), badges: [badge('new', 'good'), badge('slow', 'warn'), badge('down', 'bad'), badge('plain')], meta: text('today'),
                 actions: [host.mount(ConfirmButton, { label: 'Delete', question: 'Delete alpha?', run: async () => undefined })],
             }), { label: 'Recent things' })),
             host.mount(Table, {
@@ -72,6 +72,33 @@ describe('the kit, audited', () => {
         await userEvent.click(byText(root, 'button', 'Name'));
         await frame();
         expect(await audit(root)).toEqual([]);
+    });
+
+    it('has no violations in a dark colour scheme either — the kit follows the page\'s', async () => {
+        // A dark page, as a site makes one: the scheme, and the page painted from it. (The kit never
+        // paints the page itself.)
+        document.documentElement.style.colorScheme = 'dark';
+        document.body.style.background = 'Canvas';
+        document.body.style.color = 'CanvasText';
+        try {
+            const root = show((host) => [
+                pageHeader('Things'),
+                stats([stat('Things', () => 3)]),
+                panel('Recent', list(() => [{ id: 'a' }], (i) => i.id, () => listRow({
+                    title: text('alpha'), badges: [badge('neutral'), badge('good', 'good'), badge('warn', 'warn'), badge('bad', 'bad')],
+                    meta: text('today'),
+                }))),
+                host.mount(CreateForm, {}),
+            ]);
+            await frame();
+            await userEvent.click(byText(root, 'button', 'Create thing'));
+            await vi.waitFor(() => expect(root.querySelector('[data-problem-for="name"]')?.textContent).toBe('A name.'));
+            expect(await audit(root)).toEqual([]);
+        } finally {
+            document.documentElement.style.colorScheme = '';
+            document.body.style.background = '';
+            document.body.style.color = '';
+        }
     });
 
     it('has no violations in a form showing its errors', async () => {

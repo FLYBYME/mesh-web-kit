@@ -9,17 +9,24 @@
  * without a theme of its own. Every class is `kit-*`; nothing here touches a site's own elements.
  */
 
+/*
+ * Every text colour here must clear WCAG AA (4.5:1) on both --kit-page and --kit-panel, in light and
+ * dark schemes; test/a11y.browser.test.ts checks it with axe. That is why muted text is a mix of the
+ * page's own text and background (64% text: about 6.5:1 on white, 8:1 on near-black) and not the
+ * system GrayText, which is about 3.9:1 on white and failed on every page.
+ */
 :root {
     --kit-accent: LinkText;
     --kit-accent-ink: Canvas;
     --kit-ink: CanvasText;
-    --kit-muted: GrayText;
+    --kit-muted: color-mix(in srgb, CanvasText 64%, Canvas);
     --kit-page: Canvas;
     --kit-panel: color-mix(in srgb, CanvasText 4%, Canvas);
     --kit-edge: color-mix(in srgb, CanvasText 18%, Canvas);
-    --kit-good: #1a7f37;
-    --kit-warn: #9a6700;
-    --kit-bad: #c9372c;
+    /* A value for light pages and one for dark ones: a green that reads on white is too dark on black. */
+    --kit-good: light-dark(#1a7f37, #57c975);
+    --kit-warn: light-dark(#7d5400, #d9a53f);
+    --kit-bad: light-dark(#b3261e, #ff8a80);
     --kit-radius: 8px;
     --kit-gap: 0.75rem;
 }
