@@ -34,7 +34,10 @@ export function listRow(parts: ListRowParts, props: { readonly [name: string]: s
                 props: { class: 'kit-row-side' },
                 children: [
                     ...(parts.meta === undefined ? [] : [element('Text', { props: { class: 'kit-muted' }, children: [parts.meta] })]),
-                    element('Row', { props: { class: 'kit-actions' }, children: parts.actions ?? [] }),
+                    // No empty actions box: it would still take a gap, and push the meta off the edge.
+                    ...(parts.actions === undefined || parts.actions.length === 0
+                        ? []
+                        : [element('Row', { props: { class: 'kit-actions' }, children: parts.actions })]),
                 ],
             }),
         ],

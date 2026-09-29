@@ -53,6 +53,8 @@
 .kit-row-main { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
 .kit-row-title { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; font-weight: 600; }
 .kit-row-side { display: flex; gap: var(--kit-gap); align-items: center; flex-wrap: wrap; }
+/* Inside a panel, the panel's own border closes the list. */
+.kit-panel .kit-row:last-child { border-bottom: none; padding-bottom: 0; }
 
 .kit-badge { font-size: 0.8rem; font-weight: 500; padding: 0.05rem 0.45rem; border-radius: 999px; border: 1px solid var(--kit-edge); color: var(--kit-muted); }
 .kit-badge[data-tone="good"] { color: var(--kit-good); border-color: currentColor; }
@@ -67,6 +69,12 @@
 
 .kit-filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .kit-search { min-width: 14rem; }
+
+/* Every control the kit draws outside a form looks like the form's controls. */
+.kit-filter-bar input, .kit-filter-bar select, .kit-panel-head select, .kit-page-header select {
+    font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--kit-edge); border-radius: var(--kit-radius);
+    background: var(--kit-page); color: var(--kit-ink);
+}
 .kit-pager { display: flex; gap: var(--kit-gap); align-items: center; justify-content: flex-end; }
 
 /* ---------------------------------------------------------------- controls */
