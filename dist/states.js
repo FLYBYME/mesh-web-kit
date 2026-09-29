@@ -4,17 +4,20 @@
  *
  * Functions, not components: none of this remembers anything.
  */
-import { each, element, text, when } from '@flybyme/mesh-web';
+import { describe, each, element, text, when } from '@flybyme/mesh-web';
+function message(error) {
+    return error instanceof Error ? error.message : describe(error);
+}
 /**
- * `ready` gets the data as an accessor and is built **once**: a refetch updates what is on screen
- * through the accessor instead of tearing it down, so a table keeps its sort and a panel its scroll
- * while it refreshes.
+ * `ready` gets the data as an accessor and is built **once**: a refetch or a live event updates what
+ * is on screen through the accessor instead of tearing it down, so a table keeps its sort and a panel
+ * its scroll while it refreshes.
  */
 export function loaded(resource, ready, options = {}) {
     return [
         when(() => resource.error() !== null, () => element('Text', {
             props: { role: 'alert', class: 'kit-error' },
-            children: [text(() => resource.error()?.message ?? '')],
+            children: [text(() => { const error = resource.error(); return error === null ? '' : message(error); })],
         })),
         when(() => resource.error() === null && resource.data() === undefined, () => element('Text', {
             props: { 'aria-busy': 'true', class: 'kit-loading' },

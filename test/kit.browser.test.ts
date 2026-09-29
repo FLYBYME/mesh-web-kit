@@ -4,7 +4,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
-import { command, element, resource, signal, text } from '@flybyme/mesh-web';
+import { command, createCollectionQuery, element, MeshCallError, resource, signal, text } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
     badge, commandForm, ConfirmButton, dataTable, emptyState, filterBar, list, listRow, loaded,
@@ -44,6 +44,21 @@ describe('loaded', () => {
     it('shows a failure as an alert', async () => {
         const root = show(() => loaded(resource(() => Promise.reject(new Error('the api is down'))), () => []));
         await until(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe('the api is down'));
+    });
+
+    it('takes a models collection, and describes its named failure', async () => {
+        const rows = signal<readonly { name: string }[]>([{ name: 'a.example' }]);
+        let builds = 0;
+        const root = show(() => [
+            loaded(createCollectionQuery(() => Promise.resolve(rows())), (zones) => {
+                builds++;
+                return element('Text', { props: { 'data-value': '' }, children: [text(() => (zones() ?? []).map((z) => z.name).join(','))] });
+            }),
+            loaded(createCollectionQuery(() => Promise.reject(new MeshCallError({ kind: 'forbidden' }))), () => []),
+        ]);
+        await until(() => expect(root.querySelector('[data-value]')?.textContent).toBe('a.example'));
+        expect(root.querySelector('[role="alert"]')?.textContent).toBe('You do not have access to that.');
+        expect(builds).toBe(1);
     });
 });
 

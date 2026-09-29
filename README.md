@@ -23,7 +23,7 @@ state in the URL, forms built from commands, and confirm dialogs — is `example
 | `pageHeader(title, actions)` | function | a page's title and its buttons |
 | `panel(title, body, actions)` | function | a titled card (its accessible name is the title) |
 | `stat(label, value)`, `stats([...])` | function | a number with its label |
-| `loaded(resource, ready, { label })` | function | loading / failed / here, for anything fetched |
+| `loaded(source, ready, { label })` | function | loading / failed / here, for a `resource(...)` or a `cx.models` collection |
 | `emptyState(title, detail, action)` | function | "nothing here", which can name the current search |
 | `list(items, key, row)`, `listRow({...})`, `badge(label, tone)` | function | a list of things, each row the same shape |
 | `filterBar<F>()` | factory → component | a search box and one typed filter, bound to the page's signals |
@@ -91,6 +91,11 @@ export class ZonesView extends View({ inject: { zones: Zones, router: Router }, 
 
 The page owns the data (through its service), the state (its signals), and the arrangement; the kit
 owns how each piece looks and behaves.
+
+For a list the server streams events for, have the service hand out a `cx.models` collection
+instead of a `resource`: `loaded` takes either. The collection loads once, then the server's
+`<name>.created` / `.updated` / `.deleted` events change its rows in place, and so do the page's own
+writes through the collection — nothing refetches, and the table under `loaded` is never rebuilt.
 
 ## Restyling
 
