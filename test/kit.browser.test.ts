@@ -91,6 +91,22 @@ describe('layout pieces', () => {
 });
 
 describe('list and listRow', () => {
+    it('wraps a long unbroken value inside the row, at phone width, instead of widening the page', async () => {
+        // A real DKIM record, as the owner found it widening surfdns.net's records page.
+        const dkim = `v=DKIM1; k=rsa; p=${'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA'.repeat(8)}`;
+        const root = show(() => list(() => [{ id: 'r1' }], (r) => r.id, () => listRow({
+            title: text('s2026._domainkey'),
+            detail: text(dkim),
+            actions: [element('Button', { children: [text('Delete')] })],
+        })));
+        root.style.width = '320px';
+        await frame();
+        const row = root.querySelector<HTMLElement>('.kit-row')!;
+        expect(row.textContent).toContain('p=MIIB');
+        expect(row.scrollWidth).toBeLessThanOrEqual(320);
+        expect(root.scrollWidth).toBeLessThanOrEqual(320);
+    });
+
     it('keeps a row\'s DOM while the list changes around it', async () => {
         const items = signal([{ id: 'a', name: 'alpha' }, { id: 'b', name: 'beta' }]);
         const root = show(() => list(items, (i) => i.id, (i) => listRow({

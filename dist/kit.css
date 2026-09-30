@@ -57,7 +57,9 @@
 
 .kit-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .kit-row { display: flex; justify-content: space-between; align-items: center; gap: var(--kit-gap); padding: 0.6rem 0; border-bottom: 1px solid var(--kit-edge); flex-wrap: wrap; }
-.kit-row-main { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+/* Takes the room the row has, and no more: a long unbroken value (a DKIM key, a URL) wraps inside
+   it instead of widening the page. */
+.kit-row-main { display: flex; flex-direction: column; gap: 0.2rem; flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
 .kit-row-title { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; font-weight: 600; }
 .kit-row-side { display: flex; gap: var(--kit-gap); align-items: center; flex-wrap: wrap; }
 /* Inside a panel, the panel's own border closes the list. */
