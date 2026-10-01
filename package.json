@@ -1,6 +1,6 @@
 {
     "name": "@flybyme/mesh-web-kit",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "The pieces every mesh-web site needs — page header, filter bar, data table, confirm button, command form, loading and empty states — built once on the app model.",
     "type": "module",
     "main": "./dist/index.js",

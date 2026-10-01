@@ -42,7 +42,9 @@
 .kit-panel-head h2 { margin: 0; font-size: 1.1rem; }
 
 .kit-stats { display: flex; flex-wrap: wrap; gap: var(--kit-gap); }
-.kit-stat { display: flex; flex-direction: column; min-width: 9rem; padding: 0.75rem 1rem; border: 1px solid var(--kit-edge); border-radius: var(--kit-radius); }
+/* Each takes its share of the row: on a phone they sat at their minimum width against the left,
+   one per line, the right side empty (surfdns.net, owner 2026-10-01). */
+.kit-stat { display: flex; flex-direction: column; flex: 1 1 9rem; min-width: 0; padding: 0.75rem 1rem; border: 1px solid var(--kit-edge); border-radius: var(--kit-radius); }
 .kit-stat-value { font-size: 1.8rem; font-weight: 600; }
 .kit-stat-label { color: var(--kit-muted); }
 
@@ -77,7 +79,7 @@
 .kit-sort { border: 0; padding: 0; background: none; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
 
 .kit-filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.kit-search { min-width: 14rem; }
+.kit-search { min-width: 14rem; flex: 1 1 14rem; }
 
 /* Every control the kit draws outside a form looks like the form's controls. */
 .kit-filter-bar input, .kit-filter-bar select, .kit-panel-head select, .kit-page-header select {
@@ -104,3 +106,16 @@
 
 dialog:has(.kit-confirm) { border: 1px solid var(--kit-edge); border-radius: var(--kit-radius); padding: 1.25rem; max-width: 28rem; }
 .kit-confirm { display: flex; flex-direction: column; gap: 1rem; }
+
+/* ---------------------------------------------------------------- phones */
+
+/* The screen's whole width, not a desktop size left-aligned on it. */
+@media (max-width: 40rem) {
+    .kit-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kit-stat { padding: 0.6rem 0.75rem; }
+    .kit-stat-value { font-size: 1.4rem; overflow-wrap: anywhere; }
+    .kit-form { max-width: none; }
+    .kit-filter-bar > * { flex: 1 1 100%; min-width: 0; }
+    .kit-panel-head { flex-wrap: wrap; }
+    .kit-panel-head select, .kit-page-header select { flex: 1 1 100%; min-width: 0; }
+}
