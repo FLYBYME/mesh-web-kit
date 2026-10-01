@@ -23,7 +23,8 @@
 import { type Command, type Node } from '@flybyme/mesh-web';
 export interface Field {
     readonly label: string;
-    readonly type?: 'text' | 'email' | 'password' | 'number' | 'checkbox';
+    /** `textarea`: several lines of free text (a message, a description). */
+    readonly type?: 'text' | 'email' | 'password' | 'number' | 'checkbox' | 'textarea';
     /** Renders a select with these choices instead of an input. */
     readonly options?: readonly string[];
     readonly placeholder?: string;

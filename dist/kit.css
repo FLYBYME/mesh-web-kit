@@ -98,7 +98,8 @@
 .kit-form { display: flex; flex-direction: column; gap: var(--kit-gap); max-width: 32rem; }
 .kit-field { display: flex; flex-direction: column; gap: 0.2rem; }
 .kit-field label { font-size: 0.85rem; color: var(--kit-muted); }
-.kit-field input, .kit-field select { font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--kit-edge); border-radius: var(--kit-radius); background: var(--kit-page); color: var(--kit-ink); }
+.kit-field input, .kit-field select, .kit-field textarea { font: inherit; padding: 0.35rem 0.5rem; border: 1px solid var(--kit-edge); border-radius: var(--kit-radius); background: var(--kit-page); color: var(--kit-ink); }
+.kit-field textarea { resize: vertical; min-height: 6rem; }
 .kit-field [aria-invalid="true"] { border-color: var(--kit-bad); }
 .kit-field-problem { font-size: 0.8rem; min-height: 1.1rem; color: var(--kit-muted); }
 .kit-field:has([aria-invalid="true"]) .kit-field-problem { color: var(--kit-bad); }

@@ -88,21 +88,31 @@ export function commandForm(command, fields) {
                 const v = this.values()[name];
                 return typeof v === 'string' ? v : '';
             };
-            const control = field.options === undefined
-                ? element('Input', {
+            // Several lines of free text: a message, a description.
+            const control = field.type === 'textarea'
+                ? element('TextArea', {
                     props: {
-                        id, name, type: field.type ?? 'text', value,
+                        id, name, value, rows: 6,
                         ...(field.placeholder === undefined ? {} : { placeholder: field.placeholder }),
-                        ...(field.autocomplete === undefined ? {} : { autocomplete: field.autocomplete }),
                         ...described,
                     },
                     intents: { change: { action: change } },
                 })
-                : element('Select', {
-                    props: { id, name, value, ...described },
-                    intents: { change: { action: change } },
-                    children: [each(field.options, (o) => o, (o) => element('Option', { props: { value: o() }, children: [text(o)] }))],
-                });
+                : field.options === undefined
+                    ? element('Input', {
+                        props: {
+                            id, name, type: field.type ?? 'text', value,
+                            ...(field.placeholder === undefined ? {} : { placeholder: field.placeholder }),
+                            ...(field.autocomplete === undefined ? {} : { autocomplete: field.autocomplete }),
+                            ...described,
+                        },
+                        intents: { change: { action: change } },
+                    })
+                    : element('Select', {
+                        props: { id, name, value, ...described },
+                        intents: { change: { action: change } },
+                        children: [each(field.options, (o) => o, (o) => element('Option', { props: { value: o() }, children: [text(o)] }))],
+                    });
             return element('Stack', {
                 props: { class: 'kit-field', 'data-field': name },
                 children: [

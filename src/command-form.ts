@@ -28,7 +28,8 @@ import {
 
 export interface Field {
     readonly label: string;
-    readonly type?: 'text' | 'email' | 'password' | 'number' | 'checkbox';
+    /** `textarea`: several lines of free text (a message, a description). */
+    readonly type?: 'text' | 'email' | 'password' | 'number' | 'checkbox' | 'textarea';
     /** Renders a select with these choices instead of an input. */
     readonly options?: readonly string[];
     readonly placeholder?: string;
@@ -125,7 +126,17 @@ export function commandForm<I extends object, O>(command: Command<I, O>, fields:
                 const v = this.values()[name];
                 return typeof v === 'string' ? v : '';
             };
-            const control = field.options === undefined
+            // Several lines of free text: a message, a description.
+            const control = field.type === 'textarea'
+                ? element('TextArea', {
+                    props: {
+                        id, name, value, rows: 6,
+                        ...(field.placeholder === undefined ? {} : { placeholder: field.placeholder }),
+                        ...described,
+                    },
+                    intents: { change: { action: change } },
+                })
+                : field.options === undefined
                 ? element('Input', {
                     props: {
                         id, name, type: field.type ?? 'text', value,

@@ -314,6 +314,29 @@ describe('commandForm', () => {
         expect(root.querySelector<HTMLInputElement>('input[name="isPrivate"]')?.checked).toBe(true);
     });
 
+    it('takes several lines in a textarea field, labelled, refused beside it, and submitted as typed', async () => {
+        const sent: unknown[] = [];
+        const note = command({
+            title: 'Send',
+            input: z.object({ message: z.string().trim().min(10, 'A few words.') }),
+            run: async (input) => { sent.push(input); return input; },
+        });
+        const NoteForm = commandForm(note, { message: { label: 'Message', type: 'textarea', placeholder: 'What do you need?' } });
+        const root = show((host) => host.mount(NoteForm, {}));
+        await frame();
+        const area = root.querySelector<HTMLTextAreaElement>('textarea[name="message"]')!;
+        expect(area).not.toBeNull();
+        expect(root.querySelector(`label[for="${area.id}"]`)?.textContent).toBe('Message');
+
+        await userEvent.fill(area, 'short');
+        await userEvent.click(byText(root, 'button', 'Send'));
+        await until(() => expect(root.querySelector('[data-problem-for="message"]')?.textContent).toBe('A few words.'));
+
+        await userEvent.fill(area, 'Line one.\nLine two of my message.');
+        await userEvent.click(byText(root, 'button', 'Send'));
+        await until(() => expect(sent).toEqual([{ message: 'Line one.\nLine two of my message.' }]));
+    });
+
     it('gives two forms on one page their own ids, so labels never point at the wrong input', async () => {
         const root = show((host) => [host.mount(RepoForm, {}), host.mount(RepoForm, {})]);
         await frame();
