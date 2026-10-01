@@ -5,6 +5,7 @@
  * Functions, not components: none of this remembers anything.
  */
 import { describe, each, element, text, when } from '@flybyme/mesh-web';
+import { pageHeader } from './layout.js';
 /**
  * The one row of a one-row list, for a detail page.
  *
@@ -29,7 +30,9 @@ function message(error) {
  * its scroll while it refreshes.
  */
 export function loaded(resource, ready, options = {}) {
+    const heading = options.heading;
     return [
+        ...(heading === undefined ? [] : [when(() => resource.data() === undefined, () => pageHeader(heading))]),
         when(() => resource.error() !== null, () => element('Text', {
             props: { role: 'alert', class: 'kit-error' },
             children: [text(() => { const error = resource.error(); return error === null ? '' : message(error); })],

@@ -8,6 +8,12 @@ import { type CallError, type Node } from '@flybyme/mesh-web';
 export interface LoadedOptions {
     /** What is loading, for the busy text: "Loading zones…". */
     readonly label?: string;
+    /**
+     * The page's heading while there is nothing to draw it from -- loading, or failed. For a detail
+     * page whose title comes from the data: without it, a wrong id or a failed call showed an error
+     * line under no heading at all (surfdns.net, 2026-10-01).
+     */
+    readonly heading?: string | (() => string);
 }
 /**
  * Anything fetched: a `resource(...)`, or a live collection from `cx.models` (whose rows the server

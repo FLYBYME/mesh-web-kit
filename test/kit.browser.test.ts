@@ -46,6 +46,21 @@ describe('loaded', () => {
         await until(() => expect(root.querySelector('[role="alert"]')?.textContent).toBe('the api is down'));
     });
 
+    it('gives a page its heading while there is no data to title it from -- loading or failed', async () => {
+        let resolve: (v: string) => void = () => undefined;
+        const root = show(() => [
+            loaded(resource(() => new Promise<string>((r) => { resolve = r; })), (d) => pageHeader(d), { heading: 'Volume' }),
+            loaded(resource(() => Promise.reject(new MeshCallError({ kind: 'not_found' }))), () => [], { heading: () => 'Zone a.example' }),
+        ]);
+        await frame();
+        const headings = (): string[] => [...root.querySelectorAll('h1')].map((h) => h.textContent ?? '');
+        await until(() => expect(headings()).toEqual(['Volume', 'Zone a.example']));
+        expect(root.querySelector('[role="alert"]')).not.toBeNull();
+        // Once the data is here, its own heading only: never two.
+        resolve('lhspike');
+        await until(() => expect(headings()).toEqual(['lhspike', 'Zone a.example']));
+    });
+
     it('takes a models collection, and describes its named failure', async () => {
         const rows = signal<readonly { name: string }[]>([{ name: 'a.example' }]);
         let builds = 0;

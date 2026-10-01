@@ -6,10 +6,17 @@
  */
 
 import { describe, each, element, text, when, type CallError, type Node } from '@flybyme/mesh-web';
+import { pageHeader } from './layout.js';
 
 export interface LoadedOptions {
     /** What is loading, for the busy text: "Loading zones…". */
     readonly label?: string;
+    /**
+     * The page's heading while there is nothing to draw it from -- loading, or failed. For a detail
+     * page whose title comes from the data: without it, a wrong id or a failed call showed an error
+     * line under no heading at all (surfdns.net, 2026-10-01).
+     */
+    readonly heading?: string | (() => string);
 }
 
 /**
@@ -53,7 +60,9 @@ function message(error: Error | CallError<string>): string {
  * its scroll while it refreshes.
  */
 export function loaded<T>(resource: Loadable<T>, ready: (data: () => T) => Node, options: LoadedOptions = {}): Node {
+    const heading = options.heading;
     return [
+        ...(heading === undefined ? [] : [when(() => resource.data() === undefined, () => pageHeader(heading))]),
         when(() => resource.error() !== null, () => element('Text', {
             props: { role: 'alert', class: 'kit-error' },
             children: [text(() => { const error = resource.error(); return error === null ? '' : message(error); })],
