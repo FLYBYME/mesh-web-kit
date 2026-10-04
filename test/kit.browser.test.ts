@@ -277,6 +277,51 @@ describe('ConfirmButton', () => {
         await until(() => expect(root.querySelector('dialog [role="alert"]')?.textContent).toBe('it is in use'));
         expect(root.querySelector('dialog[open]')).not.toBeNull();
     });
+
+    it('with `typed`, the confirming button works only once the text is typed exactly', async () => {
+        const run = vi.fn(async () => undefined);
+        const root = show((host) => host.mount(ConfirmButton, {
+            label: 'Unwind', question: 'Unwind peera.ca?', confirm: 'Unwind order', typed: 'peera.ca', run,
+        }));
+        await frame();
+
+        await userEvent.click(byText(root, 'button', 'Unwind'));
+        await frame();
+        expect(root.querySelector('dialog[open]')?.textContent).toContain('Type peera.ca to confirm.');
+
+        const confirm = byText(root, 'button', 'Unwind order');
+        expect(confirm.hasAttribute('disabled')).toBe(true);
+
+        const input = root.querySelector<HTMLElement>('[data-confirm-typed]');
+        if (input === null) throw new Error('no typed-confirmation field');
+
+        await userEvent.fill(input, 'peera.c');
+        await frame();
+        expect(confirm.hasAttribute('disabled')).toBe(true);
+        expect(run).not.toHaveBeenCalled();
+
+        await userEvent.fill(input, 'peera.ca');
+        await until(() => expect(confirm.hasAttribute('disabled')).toBe(false));
+
+        await userEvent.click(confirm);
+        await until(() => expect(run).toHaveBeenCalledTimes(1));
+    });
+
+    it('with `typed`, opening again starts empty: a previous confirmation is never reused', async () => {
+        const root = show((host) => host.mount(ConfirmButton, {
+            label: 'Unwind', question: 'Unwind peera.ca?', confirm: 'Unwind order', typed: 'peera.ca', run: async () => undefined,
+        }));
+        await frame();
+
+        await userEvent.click(byText(root, 'button', 'Unwind'));
+        const input = root.querySelector<HTMLElement>('[data-confirm-typed]');
+        if (input === null) throw new Error('no typed-confirmation field');
+        await userEvent.fill(input, 'peera.ca');
+        await userEvent.click(byText(root, 'button', 'Cancel'));
+
+        await userEvent.click(byText(root, 'button', 'Unwind'));
+        await until(() => expect(byText(root, 'button', 'Unwind order').hasAttribute('disabled')).toBe(true));
+    });
 });
 
 // ---------------------------------------------------------------------------- command form
