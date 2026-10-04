@@ -111,7 +111,7 @@ export function commandForm(command, fields) {
                     : element('Select', {
                         props: { id, name, value, ...described },
                         intents: { change: { action: change } },
-                        children: [each(field.options, (o) => o, (o) => element('Option', { props: { value: o() }, children: [text(o)] }))],
+                        children: [each(field.options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)), (o) => o.value, (o) => element('Option', { props: { value: () => o().value }, children: [text(() => o().label)] }))],
                     });
             return element('Stack', {
                 props: { class: 'kit-field', 'data-field': name },

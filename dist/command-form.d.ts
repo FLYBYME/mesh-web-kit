@@ -25,8 +25,14 @@ export interface Field {
     readonly label: string;
     /** `textarea`: several lines of free text (a message, a description). */
     readonly type?: 'text' | 'email' | 'password' | 'number' | 'checkbox' | 'textarea';
-    /** Renders a select with these choices instead of an input. */
-    readonly options?: readonly string[];
+    /**
+     * Renders a select with these choices instead of an input: each a value, or a value with the
+     * words a person reads (`{ value: 'stripe', label: 'Card' }`).
+     */
+    readonly options?: readonly (string | {
+        readonly value: string;
+        readonly label: string;
+    })[];
     readonly placeholder?: string;
     readonly autocomplete?: string;
     /** Help text under the field, always shown. */

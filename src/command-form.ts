@@ -30,8 +30,11 @@ export interface Field {
     readonly label: string;
     /** `textarea`: several lines of free text (a message, a description). */
     readonly type?: 'text' | 'email' | 'password' | 'number' | 'checkbox' | 'textarea';
-    /** Renders a select with these choices instead of an input. */
-    readonly options?: readonly string[];
+    /**
+     * Renders a select with these choices instead of an input: each a value, or a value with the
+     * words a person reads (`{ value: 'stripe', label: 'Card' }`).
+     */
+    readonly options?: readonly (string | { readonly value: string; readonly label: string })[];
     readonly placeholder?: string;
     readonly autocomplete?: string;
     /** Help text under the field, always shown. */
@@ -149,7 +152,11 @@ export function commandForm<I extends object, O>(command: Command<I, O>, fields:
                 : element('Select', {
                     props: { id, name, value, ...described },
                     intents: { change: { action: change } },
-                    children: [each(field.options, (o) => o, (o) => element('Option', { props: { value: o() }, children: [text(o)] }))],
+                    children: [each(
+                        field.options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)),
+                        (o) => o.value,
+                        (o) => element('Option', { props: { value: () => o().value }, children: [text(() => o().label)] }),
+                    )],
                 });
 
             return element('Stack', {

@@ -343,6 +343,29 @@ const RepoForm = commandForm(createRepo, {
     isPrivate: { label: 'Private', type: 'checkbox' },
 });
 
+describe('commandForm options', () => {
+    it('a choice shows the words a person reads, and submits its value', async () => {
+        const chosen: string[] = [];
+        const pay = command({
+            title: 'Pay',
+            input: z.object({ provider: z.enum(['stripe', 'paypal']).default('stripe') }),
+            run: async (input) => { chosen.push(input.provider); return input.provider; },
+        });
+        const PayForm = commandForm(pay, { provider: { label: 'Pay with', options: [{ value: 'stripe', label: 'Card' }, { value: 'paypal', label: 'PayPal' }] } });
+
+        const root = show((host) => host.mount(PayForm, { initial: { provider: 'stripe' } }));
+        await frame();
+
+        const select = root.querySelector<HTMLSelectElement>('select[name="provider"]');
+        if (select === null) throw new Error('no select');
+        expect([...select.options].map((o) => `${o.value}=${o.textContent}`)).toEqual(['stripe=Card', 'paypal=PayPal']);
+
+        await userEvent.selectOptions(select, 'paypal');
+        await userEvent.click(byText(root, 'button', 'Pay'));
+        await until(() => expect(chosen).toEqual(['paypal']));
+    });
+});
+
 describe('commandForm', () => {
     it('puts each refused field\'s message beside that field, from the command\'s schema', async () => {
         const root = show((host) => host.mount(RepoForm, { fixed: { owner: 'o1' } }));
