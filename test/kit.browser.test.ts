@@ -4,11 +4,12 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
-import { command, createCollectionQuery, element, MeshCallError, resource, signal, text } from '@flybyme/mesh-web';
+import { command, createCollectionQuery, element, Link, MeshCallError, resource, signal, text } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
-    badge, commandForm, ConfirmButton, dataTable, emptyState, filterBar, list, listRow, loaded, one,
-    pageHeader, Pager, panel, stat,
+    badge, box, card, commandForm, commandModal, ConfirmButton, CopyText, dataTable, emptyState,
+    filterBar, list, listRow, loaded, Menu, Modal, one, pageHeader, Pager, panel, section, stat,
+    tabs, toolbar,
 } from '../src/index.js';
 import { byText, frame, show, unmount } from './harness.js';
 
@@ -426,5 +427,326 @@ describe('commandForm', () => {
         const ids = [...root.querySelectorAll('input[name="name"]')].map((i) => i.id);
         expect(ids).toHaveLength(2);
         expect(new Set(ids).size).toBe(2);
+    });
+});
+
+// ---------------------------------------------------------------------------- modal and commandModal
+
+describe('Modal', () => {
+    it('opens by trigger, traps focus, closes on Escape, and returns focus to trigger', async () => {
+        const root = show((host) => host.mount(Modal, {
+            title: 'Create record',
+            trigger: 'New record',
+            body: element('Input', { props: { type: 'text', 'aria-label': 'Record name' } }),
+            actions: [element('Button', { props: { class: 'kit-button' }, children: [text('Save')] })],
+        }));
+        await frame();
+
+        const trigger = byText<HTMLButtonElement>(root, 'button', 'New record');
+        await userEvent.click(trigger);
+        await frame();
+
+        const dialogEl = root.querySelector('dialog[open]');
+        expect(dialogEl).not.toBeNull();
+        expect(dialogEl?.getAttribute('aria-label')).toBe('Create record');
+
+        // Close on Escape
+        await userEvent.keyboard('{Escape}');
+        await until(() => expect(root.querySelector('dialog[open]')).toBeNull());
+        expect(document.activeElement).toBe(trigger);
+
+        // Re-open and close with close button
+        await userEvent.click(trigger);
+        await frame();
+        expect(root.querySelector('dialog[open]')).not.toBeNull();
+
+        const closeBtn = root.querySelector<HTMLButtonElement>('.kit-modal-close');
+        if (closeBtn === null) throw new Error('no close button');
+        await userEvent.click(closeBtn);
+        await until(() => expect(root.querySelector('dialog[open]')).toBeNull());
+        expect(document.activeElement).toBe(trigger);
+    });
+
+    it('opens and closes via controlled signal', async () => {
+        const open = signal(false);
+        const root = show((host) => host.mount(Modal, {
+            title: 'Controlled modal',
+            open,
+            body: element('Text', { children: [text('Modal content')] }),
+        }));
+        await frame();
+        expect(root.querySelector('dialog[open]')).toBeNull();
+
+        open.set(true);
+        await until(() => expect(root.querySelector('dialog[open]')).not.toBeNull());
+
+        open.set(false);
+        await until(() => expect(root.querySelector('dialog[open]')).toBeNull());
+    });
+
+    it('does not scroll horizontally at 360 px width', async () => {
+        const root = show((host) => host.mount(Modal, {
+            title: 'Mobile modal',
+            trigger: 'Open',
+            body: element('Text', { children: [text('Modal body on small phone')] }),
+        }));
+        root.style.width = '360px';
+        await frame();
+        await userEvent.click(byText(root, 'button', 'Open'));
+        await frame();
+
+        expect(root.scrollWidth).toBeLessThanOrEqual(360);
+    });
+});
+
+const addRecordCmd = command({
+    title: 'Add record',
+    input: z.object({
+        name: z.string().trim().min(3, 'At least 3 characters.'),
+        value: z.string({ required_error: 'Required.' }).trim().min(1, 'Required.'),
+    }),
+    run: async (input) => ({ id: `rec-${input.name}`, ...input }),
+});
+const RecordModal = commandModal(addRecordCmd, {
+    name: { label: 'Name' },
+    value: { label: 'Value' },
+});
+
+describe('commandModal', () => {
+    it('submits on success and closes modal, but keeps errors beside fields without closing on refusal', async () => {
+        const doneResults: unknown[] = [];
+        const root = show((host) => host.mount(RecordModal, {
+            trigger: 'Add record',
+            onDone: (r) => { doneResults.push(r); },
+        }));
+        await frame();
+
+        await userEvent.click(byText(root, 'button', 'Add record'));
+        await frame();
+        expect(root.querySelector('dialog[open]')).not.toBeNull();
+
+        // Submit invalid values
+        const nameInput = root.querySelector<HTMLInputElement>('dialog input[name="name"]');
+        if (nameInput === null) throw new Error('no name input');
+        await userEvent.fill(nameInput, 'ab');
+
+        const submitBtn = byText(root, 'dialog button[type="submit"]', 'Add record');
+        await userEvent.click(submitBtn);
+        await until(() => expect(root.querySelector('[data-problem-for="name"]')?.textContent).toBe('At least 3 characters.'));
+        expect(root.querySelector('[data-problem-for="value"]')?.textContent).toBe('Required.');
+        // Still open
+        expect(root.querySelector('dialog[open]')).not.toBeNull();
+        expect(doneResults).toHaveLength(0);
+
+        // Provide valid inputs and submit
+        await userEvent.fill(nameInput, 'www');
+        const valInput = root.querySelector<HTMLInputElement>('dialog input[name="value"]');
+        if (valInput === null) throw new Error('no value input');
+        await userEvent.fill(valInput, '192.0.2.1');
+        await userEvent.click(submitBtn);
+
+        // Closes on success and calls onDone
+        await until(() => expect(root.querySelector('dialog[open]')).toBeNull());
+        expect(doneResults).toEqual([{ id: 'rec-www', name: 'www', value: '192.0.2.1' }]);
+    });
+});
+
+// ---------------------------------------------------------------------------- tabs
+
+describe('tabs', () => {
+    it('renders tabs with role="tablist", aria-selected, and changes URL without full reload', async () => {
+        const root = show((host) => tabs([
+            { id: 'overview', label: 'Overview', href: '/overview', active: true },
+            { id: 'settings', label: 'Settings', href: '/settings', active: false },
+        ], (href, className, children) => host.mount(Link, { href, class: className, children })));
+        await frame();
+
+        const tablist = root.querySelector('[role="tablist"]');
+        expect(tablist).not.toBeNull();
+
+        const activeTab = root.querySelector('[role="tab"][aria-selected="true"]');
+        expect(activeTab?.getAttribute('aria-current')).toBe('page');
+        expect(activeTab?.textContent).toBe('Overview');
+
+        const settingsLink = byText(root, 'a', 'Settings');
+        await userEvent.click(settingsLink);
+        await frame();
+        expect(location.pathname).toBe('/settings');
+    });
+
+    it('scrolls sideways inside itself on phone width without widening the page', async () => {
+        const manyTabs = [
+            { label: 'Overview', href: '/overview', active: true },
+            { label: 'Releases', href: '/releases' },
+            { label: 'Deployments', href: '/deployments' },
+            { label: 'Environment', href: '/env' },
+            { label: 'Metrics', href: '/metrics' },
+            { label: 'Logs', href: '/logs' },
+            { label: 'Settings', href: '/settings' },
+        ];
+        const root = show(() => tabs(manyTabs));
+        root.style.width = '360px';
+        await frame();
+
+        const tablist = root.querySelector<HTMLElement>('.kit-tabs');
+        if (tablist === null) throw new Error('no tabs container');
+
+        expect(tablist.scrollWidth).toBeGreaterThan(360);
+        expect(root.scrollWidth).toBeLessThanOrEqual(360);
+    });
+});
+
+// ---------------------------------------------------------------------------- box, card, section, toolbar
+
+describe('box, card, section, and toolbar', () => {
+    it('renders box as a bordered surface with tone and padding', async () => {
+        const root = show(() => box(text('Box content'), { tone: 'accent', padding: 'lg' }));
+        await frame();
+
+        const boxEl = root.querySelector('.kit-box');
+        expect(boxEl?.getAttribute('data-tone')).toBe('accent');
+        expect(boxEl?.getAttribute('data-padding')).toBe('lg');
+        expect(boxEl?.textContent).toBe('Box content');
+    });
+
+    it('renders card as a clickable summary when href is provided, with title and actions', async () => {
+        const clicked: string[] = [];
+        const root = show((host) => card('Zone summary', text('3 records'), {
+            href: '/domains/example.com',
+            actions: [element('Button', {
+                intents: { activate: { action: host.on(() => { clicked.push('manage'); }) } },
+                children: [text('Manage')],
+            })],
+        }));
+        await frame();
+
+        const cardEl = root.querySelector('.kit-card');
+        expect(cardEl?.getAttribute('aria-label')).toBe('Zone summary');
+        const linkEl = root.querySelector<HTMLAnchorElement>('.kit-card-title-link');
+        expect(linkEl?.getAttribute('href')).toBe('/domains/example.com');
+
+        await userEvent.click(byText(root, 'button', 'Manage'));
+        expect(clicked).toEqual(['manage']);
+    });
+
+    it('renders section for settings pages with heading and body', async () => {
+        const root = show(() => section('Danger zone', text('Delete account here'), [
+            element('Button', { children: [text('Delete')] }),
+        ]));
+        await frame();
+
+        const sec = root.querySelector('.kit-section');
+        expect(sec?.getAttribute('aria-label')).toBe('Danger zone');
+        expect(sec?.querySelector('h2')?.textContent).toBe('Danger zone');
+        expect(sec?.textContent).toContain('Delete account here');
+    });
+
+    it('renders toolbar wrapping controls on small screens', async () => {
+        const root = show(() => toolbar(
+            [element('Button', { children: [text('Filter')] }), element('Button', { children: [text('Sort')] })],
+            [element('Button', { children: [text('Export')] })],
+        ));
+        root.style.width = '360px';
+        await frame();
+
+        const tb = root.querySelector('.kit-toolbar');
+        expect(tb?.getAttribute('role')).toBe('toolbar');
+        expect(root.scrollWidth).toBeLessThanOrEqual(360);
+    });
+});
+
+// ---------------------------------------------------------------------------- Menu
+
+describe('Menu', () => {
+    it('opens on button click, moves active item with arrow keys, closes on Escape, and runs item', async () => {
+        const ran: string[] = [];
+        const root = show((host) => host.mount(Menu, {
+            label: 'Actions',
+            items: [
+                { label: 'Rename', run: () => { ran.push('rename'); } },
+                { label: 'Duplicate', run: () => { ran.push('duplicate'); } },
+                { label: 'Delete', run: () => { ran.push('delete'); }, tone: 'danger' },
+            ],
+        }));
+        await frame();
+
+        const trigger = byText(root, 'button', 'Actions');
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        expect(root.querySelector('[role="menu"]')).toBeNull();
+
+        // Open menu
+        await userEvent.click(trigger);
+        await frame();
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+        const menu = root.querySelector('[role="menu"]');
+        expect(menu).not.toBeNull();
+
+        const items = (): HTMLElement[] => [...root.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+        expect(items()).toHaveLength(3);
+        expect(items()[0]?.getAttribute('data-active')).toBe('true');
+
+        // Arrow down moves to next item
+        await userEvent.keyboard('{ArrowDown}');
+        await frame();
+        expect(items()[1]?.getAttribute('data-active')).toBe('true');
+
+        // Arrow down again
+        await userEvent.keyboard('{ArrowDown}');
+        await frame();
+        expect(items()[2]?.getAttribute('data-active')).toBe('true');
+
+        // Close on Escape
+        await userEvent.keyboard('{Escape}');
+        await frame();
+        expect(root.querySelector('[role="menu"]')).toBeNull();
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+        // Re-open and click an item
+        await userEvent.click(trigger);
+        await frame();
+        const deleteItem = byText(root, 'button', 'Delete');
+        await userEvent.click(deleteItem);
+        await frame();
+        expect(ran).toEqual(['delete']);
+        expect(root.querySelector('[role="menu"]')).toBeNull();
+
+        // Re-open and close via outside click on backdrop
+        await userEvent.click(trigger);
+        await frame();
+        expect(root.querySelector('[role="menu"]')).not.toBeNull();
+        const backdrop = root.querySelector<HTMLElement>('[data-menu-backdrop]');
+        if (backdrop === null) throw new Error('no backdrop');
+        await userEvent.click(backdrop);
+        await frame();
+        expect(root.querySelector('[role="menu"]')).toBeNull();
+    });
+});
+
+// ---------------------------------------------------------------------------- copyText
+
+describe('copyText', () => {
+    it('displays value and copy button, copying to clipboard and showing Copied state', async () => {
+        let copied = '';
+        const fakeClipboard = {
+            writeText: async (t: string): Promise<void> => {
+                copied = t;
+            },
+        };
+        Object.defineProperty(navigator, 'clipboard', {
+            value: fakeClipboard,
+            configurable: true,
+        });
+
+        const root = show((host) => host.mount(CopyText, { value: 'api-token-12345', label: 'token' }));
+        await frame();
+
+        expect(root.querySelector('.kit-copy-value')?.textContent).toBe('api-token-12345');
+        const copyBtn = byText(root, 'button', 'Copy');
+        expect(copyBtn.getAttribute('aria-label')).toBe('Copy token');
+
+        await userEvent.click(copyBtn);
+        await until(() => expect(copyBtn.textContent).toBe('Copied'));
+        expect(copied).toBe('api-token-12345');
+        expect(copyBtn.getAttribute('aria-label')).toBe('Copied');
     });
 });

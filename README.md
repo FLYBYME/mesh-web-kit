@@ -32,6 +32,15 @@ state in the URL, forms built from commands, and confirm dialogs — is `example
 | `Pager` | component | previous/next as real links; the URL is the state |
 | `ConfirmButton` | component | asks first; shows a failure instead of swallowing it |
 | `commandForm(command, fields)` | factory → component | a form for a command; errors beside their fields |
+| `Modal` | component | a dialog on mesh-web's dialog primitive with title, body, actions, and focus handling |
+| `commandModal(command, fields)` | factory → component | a commandForm inside a modal; closes on success and keeps field errors visible |
+| `tabs(items, options)` | function | a row of tabs where each tab is a router Link, with horizontal scrolling on phone screens |
+| `box(body, options)` | function | a plain bordered surface without a title |
+| `card(title, body, options)` | function | a clickable summary card for grids of things |
+| `section(title, body, actions)` | function | a heading with its content, for settings or detail pages |
+| `toolbar(left, right)` | function | a responsive row of controls that wraps on a phone |
+| `Menu` | component | a button opening a list of actions; closes on Escape and outside click, with arrow key navigation |
+| `copyText(value)` / `CopyText` | component | a value with a one-click copy button and confirmation state |
 | `ago`, `plural`, `bytes` | functions | "3 days ago", "1 zone", "1.5 KB" |
 
 ## The rules

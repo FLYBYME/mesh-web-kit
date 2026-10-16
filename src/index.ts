@@ -10,11 +10,15 @@
  */
 
 export { loaded, emptyState, one, type Loadable, type LoadableList, type LoadedOptions } from './states.js';
-export { pageHeader, panel, stat, stats } from './layout.js';
+export { pageHeader, panel, stat, stats, box, type BoxOptions, card, type CardOptions, section, toolbar } from './layout.js';
 export { list, listRow, badge, type ListRowParts } from './list.js';
 export { filterBar, type FilterBarProps, type FilterOption, type Settable } from './filter-bar.js';
 export { dataTable, type Column, type DataTableProps, type Sort } from './data-table.js';
 export { Pager } from './pager.js';
 export { ConfirmButton, type ConfirmButtonProps } from './confirm-button.js';
 export { commandForm, type CommandFormProps, type Field, type Fields } from './command-form.js';
+export { Modal, type ModalProps, commandModal, type CommandModalProps } from './modal.js';
+export { tabs, type TabItem, type TabLink, type TabsOptions } from './tabs.js';
+export { Menu, type MenuItem, type MenuProps } from './menu.js';
+export { CopyText, copyText, type CopyTextProps } from './copy-text.js';
 export { ago, plural, bytes } from './format.js';

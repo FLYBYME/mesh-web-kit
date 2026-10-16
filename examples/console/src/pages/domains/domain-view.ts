@@ -13,7 +13,7 @@ import { element, Link, resource, Router, text, View, when, type Node } from '@f
 import { z } from 'zod';
 import { RECORD_TYPES, type DnsRecord } from '../../api/fake-api.js';
 import { Domains } from '../../services/domains.service.js';
-import { commandForm, ConfirmButton, dataTable, emptyState, loaded, pageHeader } from '@flybyme/mesh-web-kit';
+import { commandForm, ConfirmButton, dataTable, emptyState, loaded, pageHeader, section } from '@flybyme/mesh-web-kit';
 import { DomainListView } from './domain-list.view.js';
 
 const RecordTable = dataTable<DnsRecord>();
@@ -62,8 +62,7 @@ export class DomainView extends View({
                     children: [text(() => `Status: ${domain().status} · added ${domain().created}`)],
                 })),
 
-                element('Heading', { props: { level: 2 }, children: [text('Records')] }),
-                loaded(this.records, (records) => [
+                section('Records', loaded(this.records, (records) => [
                     this.mount(RecordTable, {
                         label: `Records for ${name}`,
                         rows: records,
@@ -85,17 +84,16 @@ export class DomainView extends View({
                         ],
                     }),
                     when(() => records().length === 0, () => emptyState('No records', 'Add one below.')),
-                ], { label: 'Loading records…' }),
+                ], { label: 'Loading records…' })),
 
-                element('Heading', { props: { level: 2 }, children: [text('Add a record')] }),
-                element('Stack', {
+                section('Add a record', element('Stack', {
                     props: { class: 'ui-panel' },
                     children: [this.mount(this.AddRecordForm, {
                         fixed: { domain: name },
                         initial: { type: 'A', ttl: '3600' },
                         submitLabel: 'Add record',
                     })],
-                }),
+                })),
             ],
         });
     }

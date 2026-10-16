@@ -1,6 +1,7 @@
 /**
  * How a page and its parts are framed: the header at the top of a page, a titled panel, one
- * number with its label. Functions — none of this has state.
+ * number with its label, plain surfaces, cards, settings sections, and toolbars.
+ * Functions — none of this has state.
  */
 import { element, text } from '@flybyme/mesh-web';
 /** A page's title and the actions beside it ("New zone", "Refresh"). */
@@ -39,5 +40,94 @@ export function stat(label, value) {
 /** A row of stats. */
 export function stats(children) {
     return element('Row', { props: { class: 'kit-stats' }, children });
+}
+/** A plain bordered surface, with no title. */
+export function box(body, options = {}) {
+    return element('Stack', {
+        props: {
+            class: 'kit-box',
+            ...(options.tone !== undefined ? { 'data-tone': options.tone } : {}),
+            ...(options.padding !== undefined ? { 'data-padding': options.padding } : {}),
+        },
+        children: Array.isArray(body) ? body : [body],
+    });
+}
+/** A clickable summary for grids of things. */
+export function card(title, body, options = {}) {
+    const titleVal = typeof title === 'function' ? title : () => title;
+    const titleText = typeof title === 'function' ? title() : title;
+    const titleNode = options.href !== undefined
+        ? element('Link', {
+            props: { href: options.href, class: 'kit-card-title-link' },
+            children: [text(titleVal)],
+        })
+        : text(titleVal);
+    return element('Card', {
+        props: {
+            class: `kit-card ${options.href !== undefined ? 'kit-card-clickable' : ''}`.trim(),
+            'aria-label': titleText,
+        },
+        children: [
+            element('Row', {
+                props: { class: 'kit-card-head' },
+                children: [
+                    element('Heading', { props: { level: 3, class: 'kit-card-title' }, children: [titleNode] }),
+                    ...(options.actions !== undefined && options.actions.length > 0 ? [
+                        element('Row', { props: { class: 'kit-actions kit-card-actions' }, children: options.actions }),
+                    ] : []),
+                ],
+            }),
+            element('Stack', {
+                props: { class: 'kit-card-body' },
+                children: Array.isArray(body) ? body : [body],
+            }),
+        ],
+    });
+}
+/** A heading with its content, for settings pages ("General", "Danger zone"). */
+export function section(title, body, actions = []) {
+    const titleVal = typeof title === 'function' ? title : () => title;
+    const titleText = typeof title === 'function' ? title() : title;
+    return element('Card', {
+        props: {
+            class: 'kit-section',
+            'aria-label': titleText,
+        },
+        children: [
+            element('Row', {
+                props: { class: 'kit-section-head' },
+                children: [
+                    element('Heading', { props: { level: 2 }, children: [text(titleVal)] }),
+                    ...(actions.length > 0 ? [
+                        element('Row', { props: { class: 'kit-actions' }, children: actions }),
+                    ] : []),
+                ],
+            }),
+            element('Stack', {
+                props: { class: 'kit-section-body' },
+                children: Array.isArray(body) ? body : [body],
+            }),
+        ],
+    });
+}
+/** A row of controls that wraps on a phone. */
+export function toolbar(left, right = [], options = {}) {
+    return element('Row', {
+        props: {
+            class: 'kit-toolbar',
+            role: 'toolbar',
+            'aria-label': options.label ?? 'Toolbar',
+        },
+        children: [
+            element('Row', {
+                props: { class: 'kit-toolbar-left' },
+                children: Array.isArray(left) ? left : [left],
+            }),
+            element('Row', {
+                props: { class: 'kit-toolbar-right' },
+                children: Array.isArray(right) ? right : [right],
+            }),
+        ],
+    });
 }
 //# sourceMappingURL=layout.js.map

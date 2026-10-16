@@ -8,8 +8,9 @@ import { userEvent } from '@vitest/browser/context';
 import { command, element, resource, signal, text } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
-    badge, commandForm, ConfirmButton, dataTable, emptyState, filterBar, list, listRow, loaded, pageHeader, Pager,
-    panel, stat, stats,
+    badge, box, card, commandForm, commandModal, ConfirmButton, CopyText, dataTable, emptyState,
+    filterBar, list, listRow, loaded, Menu, Modal, pageHeader, Pager, panel, section, stat, stats,
+    tabs, toolbar,
 } from '../src/index.js';
 import { audit } from './a11y.js';
 import { byText, frame, show, unmount } from './harness.js';
@@ -67,9 +68,45 @@ describe('the kit, audited', () => {
             host.mount(Pager, { page: () => 2, pages: () => 3, href: (n) => `/?page=${n}` }),
             loaded(resource(() => Promise.resolve('x')), () => text('loaded')),
             emptyState('Nothing here', 'Add one.'),
+            tabs([
+                { id: 't1', label: 'Tab 1', href: '#1', active: true },
+                { id: 't2', label: 'Tab 2', href: '#2' },
+            ], { label: 'Audit tabs' }),
+            toolbar([element('Button', { children: [text('Action 1')] })], [element('Button', { children: [text('Action 2')] })]),
+            section('Section Title', [text('Section content')], [element('Button', { children: [text('Section action')] })]),
+            card('Card Title', text('Card content'), { href: '#card', actions: [element('Button', { children: [text('Edit')] })] }),
+            box(text('Muted box content'), { tone: 'neutral', padding: 'sm' }),
+            host.mount(CopyText, { value: 'sk-12345', label: 'api key' }),
         ]);
         await frame();
         await userEvent.click(byText(root, 'button', 'Name'));
+        await frame();
+        expect(await audit(root)).toEqual([]);
+    });
+
+    it('has no violations with an open modal', async () => {
+        const root = show((host) => host.mount(Modal, {
+            title: 'Edit thing',
+            open: signal(true),
+            body: element('Input', { props: { type: 'text', 'aria-label': 'Name' } }),
+            actions: [
+                element('Button', { props: { class: 'kit-button' }, children: [text('Cancel')] }),
+            ],
+        }));
+        await frame();
+        expect(await audit(root)).toEqual([]);
+    });
+
+    it('has no violations with an open menu', async () => {
+        const root = show((host) => host.mount(Menu, {
+            label: 'Actions',
+            items: [
+                { label: 'Edit', run: () => undefined },
+                { label: 'Delete', run: () => undefined },
+            ],
+        }));
+        await frame();
+        await userEvent.click(byText(root, 'button', 'Actions'));
         await frame();
         expect(await audit(root)).toEqual([]);
     });
