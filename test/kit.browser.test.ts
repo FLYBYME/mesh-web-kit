@@ -7,9 +7,9 @@ import { userEvent } from '@vitest/browser/context';
 import { command, createCollectionQuery, element, Link, MeshCallError, resource, signal, text } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
-    badge, box, card, commandForm, commandModal, ConfirmButton, CopyText, dataTable, emptyState,
+    ago, badge, box, card, commandForm, commandModal, ConfirmButton, CopyText, dataTable, emptyState,
     filterBar, list, listRow, loaded, Menu, Modal, one, pageHeader, Pager, panel, section, stat,
-    tabs, toolbar,
+    tabs, TimeAgo, toolbar,
 } from '../src/index.js';
 import { byText, frame, show, unmount } from './harness.js';
 
@@ -748,5 +748,56 @@ describe('copyText', () => {
         await until(() => expect(copyBtn.textContent).toBe('Copied'));
         expect(copied).toBe('api-token-12345');
         expect(copyBtn.getAttribute('aria-label')).toBe('Copied');
+    });
+});
+
+// ---------------------------------------------------------------------------- the time
+
+describe('ago', () => {
+    const now = Date.parse('2026-10-19T12:00:00Z');
+    const before = (seconds: number): string => new Date(now - seconds * 1000).toISOString();
+
+    it('says "just now" under a minute unless asked to count seconds', () => {
+        expect(ago(before(12), now)).toBe('just now');
+        expect(ago(before(12), now, { seconds: true })).toMatch(/12/);
+        expect(ago(before(0), now, { seconds: true })).toBe('just now');
+    });
+
+    it('has a short form, and never for no time or an unreadable one', () => {
+        expect(ago(before(12), now, { seconds: true, short: true }).length)
+            .toBeLessThan(ago(before(12), now, { seconds: true }).length);
+        expect(ago(undefined, now)).toBe('never');
+        expect(ago('not a time', now)).toBe('never');
+    });
+});
+
+describe('TimeAgo', () => {
+    it('counts up by itself between updates, with the exact time on hover', async () => {
+        const at = new Date(Date.now() - 5000).toISOString();
+        const root = show((host) => host.mount(TimeAgo, { at }));
+        await frame();
+
+        const shown = (): string => root.querySelector('.kit-time-ago')?.textContent ?? '';
+        const first = shown();
+        expect(first).toMatch(/5/);
+        expect(root.querySelector('.kit-time-ago')?.getAttribute('title')).toBe(new Date(at).toLocaleString());
+
+        // No new `at`: the clock alone moves the words on.
+        await vi.waitFor(() => expect(shown()).not.toBe(first), { timeout: 2500, interval: 50 });
+        expect(shown()).toMatch(/6/);
+    });
+
+    it('reads "not reporting" once older than staleAfterMs, and follows a changing time', async () => {
+        const at = signal(new Date(Date.now() - 180_000).toISOString());
+        const root = show((host) => host.mount(TimeAgo, { at, staleAfterMs: 120_000 }));
+        await frame();
+
+        const span = (): Element | null => root.querySelector('.kit-time-ago');
+        expect(span()?.textContent).toBe('not reporting');
+        expect(span()?.getAttribute('data-stale')).toBe('true');
+
+        at.set(new Date().toISOString());
+        await until(() => expect(span()?.getAttribute('data-stale')).toBe('false'));
+        expect(span()?.textContent).not.toBe('not reporting');
     });
 });

@@ -21,4 +21,5 @@ export { tabs } from './tabs.js';
 export { Menu } from './menu.js';
 export { CopyText, copyText } from './copy-text.js';
 export { ago, plural, bytes } from './format.js';
+export { clock, TimeAgo } from './clock.js';
 //# sourceMappingURL=index.js.map

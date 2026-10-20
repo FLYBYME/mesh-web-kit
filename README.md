@@ -41,7 +41,9 @@ state in the URL, forms built from commands, and confirm dialogs — is `example
 | `toolbar(left, right)` | function | a responsive row of controls that wraps on a phone |
 | `Menu` | component | a button opening a list of actions; closes on Escape and outside click, with arrow key navigation |
 | `copyText(value)` / `CopyText` | component | a value with a one-click copy button and confirmation state |
-| `ago`, `plural`, `bytes` | functions | "3 days ago", "1 zone", "1.5 KB" |
+| `ago`, `plural`, `bytes` | functions | "3 days ago", "1 zone", "1.5 KB"; `ago(at, now, { seconds, short })` counts seconds ("12s ago") |
+| `clock(this.cx, everyMs)` | function → signal | the time, moving every second (by default) until its owner goes: hand it to `ago` or any "older than" check so the words stay true between updates |
+| `TimeAgo` | component | a time ago that counts up by itself, "not reporting" past `staleAfterMs`, the exact time on hover |
 
 ## The rules
 

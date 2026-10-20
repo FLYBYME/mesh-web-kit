@@ -123,6 +123,9 @@
 /* Inside a panel, the panel's own border closes the list. */
 .kit-panel .kit-row:last-child { border-bottom: none; padding-bottom: 0; }
 
+/* A time ago changes every second: digits one width, one line, so nothing beside it moves. */
+.kit-time-ago { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kit-time-ago[data-stale="true"] { color: var(--kit-warn); }
 .kit-badge { font-size: 0.8rem; font-weight: 500; padding: 0.05rem 0.45rem; border-radius: 999px; border: 1px solid var(--kit-edge); color: var(--kit-muted); }
 .kit-badge[data-tone="good"] { color: var(--kit-good); border-color: currentColor; }
 .kit-badge[data-tone="warn"] { color: var(--kit-warn); border-color: currentColor; }

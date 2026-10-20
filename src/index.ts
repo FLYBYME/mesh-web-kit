@@ -21,4 +21,5 @@ export { Modal, type ModalProps, commandModal, type CommandModalProps } from './
 export { tabs, type TabItem, type TabLink, type TabsOptions } from './tabs.js';
 export { Menu, type MenuItem, type MenuProps } from './menu.js';
 export { CopyText, copyText, type CopyTextProps } from './copy-text.js';
-export { ago, plural, bytes } from './format.js';
+export { ago, plural, bytes, type AgoOptions } from './format.js';
+export { clock, TimeAgo, type ClockOwner, type TimeAgoProps } from './clock.js';

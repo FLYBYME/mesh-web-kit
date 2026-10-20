@@ -9,15 +9,32 @@ const UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
 ];
 
 const relative = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+const narrow = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'narrow' });
 
-/** "3 days ago", "in 2 months", "just now", "never". `now` is a parameter so a test can fix it. */
-export function ago(iso: string | undefined, now: number = Date.now()): string {
+export interface AgoOptions {
+    /** Count seconds under a minute ("12 seconds ago") instead of "just now": for things that change every few seconds. */
+    readonly seconds?: boolean;
+    /** "12s ago", "3m ago": the browser's short form, for a column of times. */
+    readonly short?: boolean;
+}
+
+/**
+ * "3 days ago", "in 2 months", "just now", "never". `now` is a parameter so a test can fix it, and
+ * so a page can pass a ticking one (`clock`) to keep the words current between updates.
+ */
+export function ago(iso: string | undefined, now: number = Date.now(), options: AgoOptions = {}): string {
     if (iso === undefined) return 'never';
-    const seconds = Math.round((Date.parse(iso) - now) / 1000);
+
+    const time = Date.parse(iso);
+    if (Number.isNaN(time)) return 'never';
+
+    const format = options.short === true ? narrow : relative;
+    const seconds = Math.round((time - now) / 1000);
     for (const [unit, size] of UNITS) {
-        if (Math.abs(seconds) >= size) return relative.format(Math.round(seconds / size), unit);
+        if (Math.abs(seconds) >= size) return format.format(Math.round(seconds / size), unit);
     }
-    return 'just now';
+
+    return options.seconds === true && seconds !== 0 ? format.format(seconds, 'second') : 'just now';
 }
 
 /** "1 zone", "3 zones". */
