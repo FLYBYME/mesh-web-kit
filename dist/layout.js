@@ -21,7 +21,12 @@ export function panel(title, body, actions = []) {
         children: [
             element('Row', {
                 props: { class: 'kit-panel-head' },
-                children: [element('Heading', { props: { level: 2 }, children: [text(title)] }), ...actions],
+                children: [
+                    element('Heading', { props: { level: 2 }, children: [text(title)] }),
+                    ...(actions.length > 0 ? [
+                        element('Row', { props: { class: 'kit-panel-actions' }, children: actions }),
+                    ] : []),
+                ],
             }),
             body,
         ],

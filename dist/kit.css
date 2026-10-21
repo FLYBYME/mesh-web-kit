@@ -40,6 +40,7 @@
 .kit-panel { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--kit-edge); border-radius: var(--kit-radius); background: var(--kit-panel); }
 .kit-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 .kit-panel-head h2 { margin: 0; font-size: 1.1rem; }
+.kit-panel-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 
 .kit-stats { display: flex; flex-wrap: wrap; gap: var(--kit-gap); }
 /* Each takes its share of the row: on a phone they sat at their minimum width against the left,

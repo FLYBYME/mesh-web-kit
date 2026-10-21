@@ -3,7 +3,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { userEvent } from '@vitest/browser/context';
+import { page, userEvent } from '@vitest/browser/context';
 import { command, createCollectionQuery, element, Link, MeshCallError, resource, signal, text } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
@@ -103,6 +103,64 @@ describe('layout pieces', () => {
         expect(root.querySelector('.kit-page-header h1')?.textContent).toBe('Zones');
         expect(root.querySelector('[aria-label="Recent zones"] [data-empty] h3')?.textContent).toBe('No zones yet');
         expect(root.querySelector('[data-stat="dns-zones"] .kit-stat-value')?.textContent).toBe('3');
+    });
+
+    it('a panel with two actions keeps them next to each other on the right at 1280 wide and wraps them at 360 without sideways scroll', async () => {
+        const root = show(() => panel('Operator logs', element('Text', { children: [text('Logs body')] }), [
+            element('Button', { props: { 'data-action': 'first' }, children: [text('Follow logs stream')] }),
+            element('Button', { props: { 'data-action': 'second' }, children: [text('Download all lines')] }),
+        ]));
+
+        await page.viewport(1280, 800);
+        root.style.width = '1280px';
+        await frame();
+
+        const heading = root.querySelector('.kit-panel-head h2')!;
+        const actions = root.querySelector('.kit-panel-actions')!;
+        const btn1 = root.querySelector('[data-action="first"]')!;
+        const btn2 = root.querySelector('[data-action="second"]')!;
+
+        expect(actions).not.toBeNull();
+        const headRect = root.querySelector('.kit-panel-head')!.getBoundingClientRect();
+        const headingRect = heading.getBoundingClientRect();
+        const rect1 = btn1.getBoundingClientRect();
+        const rect2 = btn2.getBoundingClientRect();
+
+        // At 1280 wide, both actions are next to each other on the right
+        expect(rect1.top).toBe(rect2.top);
+        expect(rect1.left).toBeGreaterThan(headingRect.right);
+        expect(rect2.left).toBeGreaterThan(rect1.right - 1);
+        expect(rect2.right).toBeLessThanOrEqual(headRect.right + 1);
+
+        // At 360 wide, wraps without sideways scroll
+        await page.viewport(360, 640);
+        root.style.width = '360px';
+        await frame();
+
+        const mobileRect1 = btn1.getBoundingClientRect();
+        const mobileRect2 = btn2.getBoundingClientRect();
+        const mobileHeadingRect = heading.getBoundingClientRect();
+
+        // Actions wrapped relative to heading or each other
+        const wrapped = mobileRect1.top > mobileHeadingRect.bottom - 1 || mobileRect2.top > mobileRect1.bottom - 1;
+        expect(wrapped).toBe(true);
+        expect(root.scrollWidth).toBeLessThanOrEqual(360);
+        expect(document.body.scrollWidth).toBeLessThanOrEqual(360);
+    });
+
+    it('a panel whose title is a signal shows the new title after .set', async () => {
+        const title = signal('Initial title');
+        const root = show(() => panel(title, element('Text', { children: [text('Panel body')] })));
+        await frame();
+
+        expect(root.querySelector('.kit-panel-head h2')?.textContent).toBe('Initial title');
+        expect(root.querySelector('.kit-panel')?.getAttribute('aria-label')).toBe('Initial title');
+
+        title.set('Updated title');
+        await frame();
+
+        expect(root.querySelector('.kit-panel-head h2')?.textContent).toBe('Updated title');
+        expect(root.querySelector('.kit-panel')?.getAttribute('aria-label')).toBe('Updated title');
     });
 });
 

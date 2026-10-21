@@ -18,13 +18,18 @@ export function pageHeader(title: string | (() => string), actions: readonly Nod
 }
 
 /** A titled card. Its accessible name is the title, so a test (or a screen reader) can find it. */
-export function panel(title: string, body: Node, actions: readonly Node[] = []): Node {
+export function panel(title: string | (() => string), body: Node, actions: readonly Node[] = []): Node {
     return element('Card', {
         props: { class: 'kit-panel', 'aria-label': title },
         children: [
             element('Row', {
                 props: { class: 'kit-panel-head' },
-                children: [element('Heading', { props: { level: 2 }, children: [text(title)] }), ...actions],
+                children: [
+                    element('Heading', { props: { level: 2 }, children: [text(title)] }),
+                    ...(actions.length > 0 ? [
+                        element('Row', { props: { class: 'kit-panel-actions' }, children: actions }),
+                    ] : []),
+                ],
             }),
             body,
         ],
