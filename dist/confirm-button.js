@@ -20,6 +20,10 @@ export class ConfirmButton extends Component({ props: props() }) {
     cancel = this.on(() => { if (!this.busy())
         this.open.set(false); });
     go = this.on(() => void this.#confirmed());
+    #question = () => {
+        const q = this.props.question;
+        return typeof q === 'function' ? q() : q;
+    };
     render() {
         const tone = this.props.tone ?? 'danger';
         return [
@@ -30,12 +34,12 @@ export class ConfirmButton extends Component({ props: props() }) {
             }),
             dialog({
                 open: this.open,
-                props: { ariaLabel: this.props.question },
+                props: { ariaLabel: this.#question },
                 intents: { dismiss: { action: this.cancel } },
                 children: [element('Stack', {
                         props: { class: 'kit-confirm' },
                         children: [
-                            element('Text', { children: [text(this.props.question)] }),
+                            element('Text', { children: [text(this.#question)] }),
                             when(() => this.props.typed !== undefined, () => element('Stack', {
                                 props: { class: 'kit-confirm-typed' },
                                 children: [

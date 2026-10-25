@@ -10,8 +10,11 @@ import { type Node } from '@flybyme/mesh-web';
 export interface ConfirmButtonProps {
     /** On the button: "Delete". */
     readonly label: string;
-    /** In the dialog: "Delete example.com and all its records?". */
-    readonly question: string;
+    /**
+     * In the dialog: "Delete example.com and all its records?". A function names the thing as it is
+     * now -- a row's button is drawn once, and the row it acts on may have changed since.
+     */
+    readonly question: string | (() => string);
     /** On the confirming button: "Delete zone". Defaults to `label`. */
     readonly confirm?: string;
     readonly run: () => Promise<unknown>;

@@ -326,6 +326,17 @@ describe('ConfirmButton', () => {
         expect(run).toHaveBeenCalledTimes(1);
     });
 
+    it('names the thing as it is now when its question is a function', async () => {
+        const host = signal('old.example.com');
+        const root = show((h) => h.mount(ConfirmButton, { label: 'Delete', question: () => `Delete ${host()}?`, run: async () => undefined }));
+        await frame();
+
+        host.set('new.example.com');
+        await userEvent.click(byText(root, 'button', 'Delete'));
+        await frame();
+        expect(root.querySelector('dialog[open]')?.textContent).toContain('Delete new.example.com?');
+    });
+
     it('shows a failure in the dialog and stays open, instead of swallowing it', async () => {
         const root = show((host) => host.mount(ConfirmButton, {
             label: 'Delete', question: 'Delete it?', run: () => Promise.reject(new Error('it is in use')),

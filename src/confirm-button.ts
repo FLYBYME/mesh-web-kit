@@ -12,8 +12,11 @@ import { Component, dialog, element, props, signal, text, when, type Node } from
 export interface ConfirmButtonProps {
     /** On the button: "Delete". */
     readonly label: string;
-    /** In the dialog: "Delete example.com and all its records?". */
-    readonly question: string;
+    /**
+     * In the dialog: "Delete example.com and all its records?". A function names the thing as it is
+     * now -- a row's button is drawn once, and the row it acts on may have changed since.
+     */
+    readonly question: string | (() => string);
     /** On the confirming button: "Delete zone". Defaults to `label`. */
     readonly confirm?: string;
     readonly run: () => Promise<unknown>;
@@ -41,6 +44,11 @@ export class ConfirmButton extends Component({ props: props<ConfirmButtonProps>(
     readonly cancel = this.on(() => { if (!this.busy()) this.open.set(false); });
     readonly go = this.on(() => void this.#confirmed());
 
+    readonly #question = (): string => {
+        const q = this.props.question;
+        return typeof q === 'function' ? q() : q;
+    };
+
     render(): Node {
         const tone = this.props.tone ?? 'danger';
         return [
@@ -51,12 +59,12 @@ export class ConfirmButton extends Component({ props: props<ConfirmButtonProps>(
             }),
             dialog({
                 open: this.open,
-                props: { ariaLabel: this.props.question },
+                props: { ariaLabel: this.#question },
                 intents: { dismiss: { action: this.cancel } },
                 children: [element('Stack', {
                     props: { class: 'kit-confirm' },
                     children: [
-                        element('Text', { children: [text(this.props.question)] }),
+                        element('Text', { children: [text(this.#question)] }),
                         when(() => this.props.typed !== undefined, () => element('Stack', {
                             props: { class: 'kit-confirm-typed' },
                             children: [
