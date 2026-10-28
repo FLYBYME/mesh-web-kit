@@ -90,8 +90,10 @@ export function dataTable<Row>() {
             const key = controlled === undefined
                 ? (column.compare === undefined ? undefined : column.header)
                 : column.sortKey;
+            // Aligned as its cells are: a number column's header over its numbers, not beside them.
+            const align = column.align ?? 'start';
             if (key === undefined) {
-                return element('TableHeaderCell', { props: { scope: 'col' }, children: [text(column.header)] });
+                return element('TableHeaderCell', { props: { scope: 'col', 'data-align': align }, children: [text(column.header)] });
             }
             const direction = (): 1 | -1 | undefined => {
                 const sort = this.current();
@@ -105,6 +107,7 @@ export function dataTable<Row>() {
             return element('TableHeaderCell', {
                 props: {
                     scope: 'col',
+                    'data-align': align,
                     'aria-sort': () => {
                         const d = direction();
                         return d === undefined ? 'none' : d === 1 ? 'ascending' : 'descending';

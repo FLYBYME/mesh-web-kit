@@ -263,6 +263,20 @@ describe('dataTable', () => {
         expect(root.querySelectorAll('th[aria-sort="none"]')).toHaveLength(1);
     });
 
+    it('aligns a header as its cells, sortable or not', async () => {
+        const root = show((host) => host.mount(RowTable, {
+            label: 'Rows', rows: () => rows, key: (r) => r.name,
+            columns: [
+                { header: 'Name', cell: (r) => text(() => r().name) },
+                { header: 'Size', cell: (r) => text(() => String(r().size)), compare: (x, y) => x.size - y.size, align: 'end' },
+                { header: 'Plain', cell: (r) => text(() => String(r().size)), align: 'end' },
+            ],
+        }));
+        await frame();
+
+        expect([...root.querySelectorAll('th')].map((th) => th.getAttribute('data-align'))).toEqual(['start', 'end', 'end']);
+    });
+
     it('in controlled mode, only reports the click — the owner sorts (a paged list must)', async () => {
         const current = signal<{ key: string; direction: 1 | -1 } | undefined>({ key: 'name', direction: 1 });
         const changes: unknown[] = [];
