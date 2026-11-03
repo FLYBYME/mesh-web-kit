@@ -41,8 +41,9 @@
     --kit-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
 
     /* A value for light pages and one for dark ones: a green that reads on white is too dark on black. */
-    --kit-good: light-dark(#1a7f37, #57c975);
-    --kit-warn: light-dark(#7d5400, #d9a53f);
+    /* Dark enough to keep 4.5:1 on a tinted row too (a badge on a hovered or selected row), not only on white. */
+    --kit-good: light-dark(#116329, #57c975);
+    --kit-warn: light-dark(#6a4700, #d9a53f);
     --kit-bad: light-dark(#b3261e, #ff8a80);
 
     --kit-radius: 10px;
