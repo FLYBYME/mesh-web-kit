@@ -51,6 +51,7 @@ export declare function dataTable<Row>(): {
         readonly current: () => Sort | undefined;
         readonly sorted: () => readonly Row[];
         render(): Node;
+        "__#private@#table"(columns: DataTableProps<Row>["columns"], key: DataTableProps<Row>["key"], label: string): Node;
         "__#private@#header"(column: Column<Row>): Node;
         readonly cx: import("@flybyme/mesh-web").Capabilities<readonly [], unknown>;
         readonly inject: import("@flybyme/mesh-web").Injected<import("@flybyme/mesh-web").None>;

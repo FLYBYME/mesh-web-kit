@@ -6,11 +6,12 @@
 
 import { afterEach, describe, expect, it } from 'vitest';
 import { page } from '@vitest/browser/context';
-import { command, element, signal, text, type Node } from '@flybyme/mesh-web';
+import { command, element, Link, signal, text, type Node } from '@flybyme/mesh-web';
 import { z } from 'zod';
 import {
-    badge, card, commandForm, ConfirmButton, CopyText, dataTable, emptyState, filterBar, list, listRow,
-    Menu, pageHeader, panel, section, stat, stats, tabs, toolbar,
+    AppBar, authCard, badge, band, card, chip, chips, commandForm, ConfirmButton, CopyText, ctaBand, dataTable,
+    emptyState, featureGrid, filterBar, footer, hero, list, listRow, Menu, pageHeader, panel, planCard, planGrid,
+    progress, section, segmented, SnackQueue, Snackbars, spinner, stat, stats, Switch, tabs, toolbar, wordmark,
 } from '../src/index.js';
 import { frame, show, unmount, type Page } from './harness.js';
 
@@ -98,15 +99,86 @@ function everything(host: Page): Node {
                 ],
             })),
             emptyState('No zones yet', 'Add a domain you own to host its DNS here.', button('Add a domain', 'primary')),
+            section('Choices and progress', element('Stack', {
+                props: { style: 'display: flex; flex-direction: column; gap: 16px;' },
+                children: [
+                    host.mount(KindChips, { value: signal<readonly Kind[]>(['mx']), label: 'Kinds', options: [{ value: 'a', label: 'A' }, { value: 'mx', label: 'MX' }, { value: 'txt', label: 'TXT' }] }),
+                    element('Row', { props: { style: 'display: flex; gap: 24px; align-items: center; flex-wrap: wrap;' }, children: [
+                        host.mount(Switch, { checked: signal(true), label: 'DNSSEC' }),
+                        host.mount(Switch, { checked: signal(false), label: 'Proxy' }),
+                        host.mount(RangeButtons, { value: signal<Range>('24h'), label: 'Range', options: [{ value: '1h', label: '1 h' }, { value: '24h', label: '24 h' }, { value: '7d', label: '7 d' }] }),
+                        spinner(),
+                        chip('static tag'),
+                    ] }),
+                    progress(() => 0.62, 'Upload'),
+                    progress(() => undefined, 'Working'),
+                ],
+            })),
         ],
     });
 }
 
-async function photograph(name: string, width: number, scheme: 'light' | 'dark'): Promise<void> {
+type Kind = 'a' | 'mx' | 'txt';
+const KindChips = chips<Kind>();
+type Range = '1h' | '24h' | '7d';
+const RangeButtons = segmented<Range>();
+
+const cta = (label: string, primary = false): Node => element('Link', {
+    props: { href: '/', class: 'kit-button', ...(primary ? { 'data-tone': 'primary' } : {}) },
+    children: [text(label)],
+});
+
+/** A public site's home page, made of the blocks only. */
+function publicPage(host: Page): Node {
+    const queue = new SnackQueue();
+    queue.show('Saved');
+
+    return element('Stack', {
+        children: [
+            host.mount(AppBar, {
+                brand: host.mount(Link, { href: '/', children: [wordmark('SurfDNS')] }),
+                links: ['Features', 'Pricing', 'Docs', 'About'].map((l) => host.mount(Link, { href: `/?p=${l}`, children: [text(l)] })),
+                actions: [cta('Sign in'), cta('Get started', true)],
+            }),
+            hero({
+                eyebrow: 'Hosting on our own servers', title: 'Apps, DNS and mail. One platform.',
+                lead: 'Push your code and it is live with its own address and certificate. Your domains and mailboxes sit beside it.',
+                actions: [cta('Start free', true), cta('See pricing')], note: 'No card needed to start.',
+            }),
+            band(featureGrid([
+                { mark: 'NS', title: 'DNS', body: 'Zones and records on our own nameservers, with DNSSEC.' },
+                { mark: '@', title: 'Mail', body: 'Mailboxes on your domain with webmail and IMAP.' },
+                { mark: '>_', title: 'Push to deploy', body: 'A git push builds and ships your app.' },
+            ]), { eyebrow: 'What you get', title: 'Everything a site needs', lead: 'One account, one bill.' }),
+            band(text('Montreal, Toronto, Vancouver.'), { tone: 'dark', eyebrow: 'Our servers', title: 'Not a reseller', lead: 'We run the machines.' }),
+            band(planGrid([
+                planCard({ name: 'Starter', price: '$5', period: 'a month', summary: 'One site.', features: ['1 app', '1 domain', '2 mailboxes'], action: cta('Choose Starter') }),
+                planCard({ name: 'Team', price: '$20', period: 'a month', summary: 'A small business.', features: ['10 apps', '10 domains', '25 mailboxes'], featured: true, ribbon: 'Most chosen', action: cta('Choose Team', true) }),
+                planCard({ name: 'Agency', price: '$60', period: 'a month', summary: 'Many clients.', features: ['50 apps', 'Unlimited domains'], action: cta('Choose Agency') }),
+            ]), { tone: 'tint', title: 'Plans' }),
+            ctaBand('Start in a minute', 'Sign up, push your code, point your domain.', [cta('Get started', true), cta('Talk to us')]),
+            footer(
+                element('Stack', { children: [wordmark('SurfDNS'), text('Hosting, DNS and mail on our own servers.')] }),
+                [
+                    { heading: 'Product', links: ['Features', 'Pricing'].map((l) => host.mount(Link, { href: `/?p=${l}`, children: [text(l)] })) },
+                    { heading: 'Company', links: ['About', 'Contact'].map((l) => host.mount(Link, { href: `/?p=${l}`, children: [text(l)] })) },
+                ],
+                text('© 2026 SurfDNS'),
+            ),
+            authCard('Sign in', 'Welcome back.', element('Stack', { props: { class: 'kit-form' }, children: [
+                element('Input', { props: { type: 'email', placeholder: 'you@example.com', 'aria-label': 'Email' } }),
+                button('Sign in', 'primary'),
+            ] }), text('No account? Sign up.')),
+            host.mount(Snackbars, { queue }),
+        ],
+    });
+}
+
+async function photograph(name: string, width: number, scheme: 'light' | 'dark', what: (host: Page) => Node = everything): Promise<void> {
     // Tall enough that the whole page is on screen: a picture of an element is cut at the viewport.
-    await page.viewport(width, width < 600 ? 4600 : 2400);
+    await page.viewport(width, width < 600 ? 6400 : 3400);
     document.documentElement.style.colorScheme = scheme;
-    const root = show((host) => everything(host));
+    const root = show((host) => what(host));
     await frame();
     await frame();
 
@@ -119,4 +191,7 @@ describe('the gallery', () => {
     it('desktop, dark', async () => photograph('desktop', 1280, 'dark'));
     it('phone, light', async () => photograph('phone', 390, 'light'));
     it('phone, dark', async () => photograph('phone', 390, 'dark'));
+    it('public page, desktop, light', async () => photograph('public-desktop', 1280, 'light', publicPage));
+    it('public page, desktop, dark', async () => photograph('public-desktop', 1280, 'dark', publicPage));
+    it('public page, phone, light', async () => photograph('public-phone', 390, 'light', publicPage));
 });

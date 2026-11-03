@@ -65,6 +65,15 @@ export function dataTable<Row>() {
 
         render(): Node {
             const { columns, key, label } = this.props;
+            // In a box that scrolls sideways, so a wide table on a phone scrolls itself, not the page.
+            // Focusable, so the scroll is reachable from a keyboard too.
+            return element('Stack', {
+                props: { class: 'kit-table-scroll', role: 'region', 'aria-label': `${label}, scrollable`, tabindex: '0' },
+                children: [this.#table(columns, key, label)],
+            });
+        }
+
+        #table(columns: DataTableProps<Row>['columns'], key: DataTableProps<Row>['key'], label: string): Node {
             return element('Table', {
                 props: { class: 'kit-table', 'aria-label': label },
                 children: [

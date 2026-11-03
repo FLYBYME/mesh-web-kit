@@ -44,13 +44,27 @@ state in the URL, forms built from commands, and confirm dialogs — is `example
 | `ago`, `plural`, `bytes` | functions | "3 days ago", "1 zone", "1.5 KB"; `ago(at, now, { seconds, short })` counts seconds ("12s ago") |
 | `clock(this.cx, everyMs)` | function → signal | the time, moving every second (by default) until its owner goes: hand it to `ago` or any "older than" check so the words stay true between updates |
 | `TimeAgo` | component | a time ago that counts up by itself, "not reporting" past `staleAfterMs`, the exact time on hover |
+| `AppBar` | component | the top bar: brand, links, actions in one row; under 760px a menu button and a drawer, which closes on Escape, the backdrop, or a change of page |
+| `bottomBar(items)`, `wordmark(name)` | function | a phone's bottom navigation (hidden on a wide screen); the site name in the gradient |
+| `spinner(label)`, `progress(value, label)` | function | something loading; how far along (undefined: sweeps) |
+| `SnackQueue`, `Snackbars` | class, component | "Saved" at the bottom of the screen: one queue per site, `show(message, tone)`, three at most, gone after 4 s (7 s for a failure) |
+| `chips<V>()`, `chip(label)` | factory → component, function | filter chips bound to a page signal; a plain tag |
+| `Switch` | component | a setting that applies when flipped (`role="switch"`) |
+| `segmented<V>()` | factory → component | two to five options, one chosen |
+| `divider()`, `tooltip(node, tip)` | function | a line; a tip on hover and keyboard focus |
+| `SideSheet` | component | details of one thing sliding in from the right; the whole screen on a phone |
+| `hero`, `band`, `featureGrid`, `planCard`, `planGrid`, `ctaBand`, `picture`, `footer`, `authCard` | function | a public site's blocks: the gradient hero, full-width bands (plain, tint, dark), features, plan cards, the closing ask, a screenshot, footer columns, the sign-in card |
+
+A data table now sits in a box that scrolls sideways, so a wide table on a phone scrolls itself and
+not the page.
 
 ## The rules
 
 Every piece follows these. A piece that would break one does not belong in the kit.
 
-1. **No services, no fetching, no domain.** Nothing here injects a service, calls an api, or knows
-   what a zone or a repository is. Data comes in as props; what the person did goes out through a
+1. **No services, no fetching, no domain.** Nothing here injects a service (mesh-web's own `Router`
+   aside, which `AppBar` reads to close its drawer when the page changes, as `Link` does), calls an
+   api, or knows what a zone or a repository is. Data comes in as props; what the person did goes out through a
    callback prop or a command.
 2. **A component only if it remembers something.** A confirm button remembers whether it is open;
    a table, its sort; a form, what was typed. Anything that does not is a function returning nodes.
@@ -136,6 +150,15 @@ Set the tokens; do not override the rules:
 Colours use `light-dark()`, so light and dark follow the page's `color-scheme`. Every text colour
 clears WCAG AA on every surface, in both; `test/a11y.browser.test.ts` checks it.
 
+`--kit-width` is the width a public site's bands centre their content at; `--kit-dark`,
+`--kit-dark-ink` and `--kit-dark-muted` colour the dark band.
+
+**The bridge.** kit.css also sets mesh-web's kernel tokens (`--page`, `--ink`, `--accent`, ...: its
+windows, notifications, log panel and confirm dialog) and mesh-web-charts' `--chart-*` from the kit's.
+A site sets `--kit-*` alone and all three match. Import order: `charts.css`, then `kit.css`, then the
+site's own stylesheet, which sets only its brand tokens and its own page layouts. If two sites need a
+rule, it belongs in the kit.
+
 Two layers:
 
 - **`kit-base`** (a CSS cascade layer) styles the page's plain elements: the body's font and colours,
@@ -155,22 +178,22 @@ what each must do (sizes, states, keyboard). The look is the kit's own.
 | Material 3 | Here | State |
 |---|---|---|
 | Buttons, icon buttons | `kit-button` (`data-tone`: primary, danger), plain `button` | restyled; icon buttons to add |
-| Button groups, segmented buttons | | to add |
-| Loading and progress indicators | `loaded` (text) | spinner and progress bar to add |
-| Navigation bar / drawer / rail, app bar | each site's own | to add (top bar wide, drawer and bottom bar on phones) |
-| Side sheet | | to add |
+| Button groups, segmented buttons | `segmented<V>()` | done (0.4) |
+| Loading and progress indicators | `loaded`, `spinner`, `progress` | done (0.4) |
+| Navigation bar / drawer / rail, app bar | `AppBar` (drawer on phones), `bottomBar` | done (0.4); a rail not planned |
+| Side sheet | `SideSheet` | done (0.4) |
 | Toolbars | `toolbar`, `pageHeader` | restyled |
-| Badges, chips | `badge` | badge restyled; chips to add |
-| Cards | `card`, `panel`, `box` | restyled |
-| Checkbox, radio, switch | plain inputs (accent-colored) | switch to add |
+| Badges, chips | `badge`, `chips<V>()`, `chip` | done (0.4) |
+| Cards | `card`, `panel`, `box`, `planCard` | restyled |
+| Checkbox, radio, switch | plain inputs (accent-colored), `Switch` | done (0.4) |
 | Dialogs | `Modal`, `ConfirmButton` | restyled |
-| Divider | | to add |
+| Divider | `divider()` | done (0.4) |
 | Lists | `list`, `listRow` | restyled |
 | Menus | `Menu` | restyled |
 | Search, text fields | `filterBar`, `commandForm` | restyled |
-| Snackbar | | to add |
+| Snackbar | `SnackQueue`, `Snackbars` | done (0.4) |
 | Tabs | `tabs` | restyled |
-| Tooltips | | to add |
+| Tooltips | `tooltip` | done (0.4) |
 | Date and time pickers, sliders, carousel, FABs, split buttons | | not planned yet |
 
 ## Developing
