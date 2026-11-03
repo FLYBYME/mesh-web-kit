@@ -1,5 +1,7 @@
 node_modules/
 *.tsbuildinfo
+# The gallery's pictures (test/gallery.browser.test.ts): looked at, not kept.
+test/__gallery__/
 
 # dist/ IS committed. mesh-serve's builder installs a site's dependencies with
 # `npm ci --omit=dev --ignore-scripts`, so a git dependency's `prepare` never runs there: a tag has

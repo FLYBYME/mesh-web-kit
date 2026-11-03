@@ -114,11 +114,64 @@ writes through the collection — nothing refetches, and the table under `loaded
 Set the tokens; do not override the rules:
 
 ```css
-:root { --kit-accent: #0a7; --kit-accent-ink: #fff; --kit-radius: 4px; }
+:root {
+    --kit-accent: light-dark(#0a7, #3c9);
+    --kit-gradient: linear-gradient(135deg, #087 0%, #0a5 100%);
+    --kit-radius: 6px;
+}
 ```
 
-The defaults are system colours, so the kit follows the page's `color-scheme`. Every class is
-`kit-*`; the stylesheet touches nothing of the site's own.
+| Token | What |
+|---|---|
+| `--kit-font`, `--kit-font-mono` | the text and code fonts (load a web font yourself; the kit names it first) |
+| `--kit-page`, `--kit-panel`, `--kit-raised` | the page, a panel on it, and what floats above both (menus, dialogs) |
+| `--kit-ink`, `--kit-muted` | text, and quieter text (a mix of the ink, never a fixed grey) |
+| `--kit-edge`, `--kit-edge-strong` | hairlines between things, and the edges of fields and buttons |
+| `--kit-accent`, `--kit-accent-2`, `--kit-accent-ink`, `--kit-accent-soft`, `--kit-gradient` | the brand: links, focus, the primary button's fill and its text |
+| `--kit-good`, `--kit-warn`, `--kit-bad` | status colours |
+| `--kit-radius`, `--kit-radius-lg` | corners of controls, and of panels and cards |
+| `--kit-gap`, `--kit-control` | spacing, and the height of every button and field (44px: a touch target) |
+| `--kit-shadow-sm/md/lg`, `--kit-focus`, `--kit-ease` | depth, the focus ring, motion |
+
+Colours use `light-dark()`, so light and dark follow the page's `color-scheme`. Every text colour
+clears WCAG AA on every surface, in both; `test/a11y.browser.test.ts` checks it.
+
+Two layers:
+
+- **`kit-base`** (a CSS cascade layer) styles the page's plain elements: the body's font and colours,
+  headings, links, and every plain `button`, `input`, `select` and `textarea`. A site therefore
+  doesn't style those itself. Being a layer, any rule a site writes outside a layer wins over it,
+  whatever its specificity.
+- The **`kit-*` classes** style the kit's own pieces and touch nothing of the site's.
+
+`npm run test:browser -- test/gallery.browser.test.ts` photographs every piece, light and dark, at
+a desktop and a phone width, into `test/__gallery__/`. Look at it before changing the look.
+
+## Components: what a whole UI needs
+
+Material Design 3's component list is the checklist: which pieces a complete interface has, and
+what each must do (sizes, states, keyboard). The look is the kit's own.
+
+| Material 3 | Here | State |
+|---|---|---|
+| Buttons, icon buttons | `kit-button` (`data-tone`: primary, danger), plain `button` | restyled; icon buttons to add |
+| Button groups, segmented buttons | | to add |
+| Loading and progress indicators | `loaded` (text) | spinner and progress bar to add |
+| Navigation bar / drawer / rail, app bar | each site's own | to add (top bar wide, drawer and bottom bar on phones) |
+| Side sheet | | to add |
+| Toolbars | `toolbar`, `pageHeader` | restyled |
+| Badges, chips | `badge` | badge restyled; chips to add |
+| Cards | `card`, `panel`, `box` | restyled |
+| Checkbox, radio, switch | plain inputs (accent-colored) | switch to add |
+| Dialogs | `Modal`, `ConfirmButton` | restyled |
+| Divider | | to add |
+| Lists | `list`, `listRow` | restyled |
+| Menus | `Menu` | restyled |
+| Search, text fields | `filterBar`, `commandForm` | restyled |
+| Snackbar | | to add |
+| Tabs | `tabs` | restyled |
+| Tooltips | | to add |
+| Date and time pickers, sliders, carousel, FABs, split buttons | | not planned yet |
 
 ## Developing
 
